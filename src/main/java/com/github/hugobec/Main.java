@@ -23,7 +23,7 @@ public class Main {
     public static void main(String[] args) {
         String token = "";
         try {
-            RandomAccessFile tokenFile = new RandomAccessFile("..\\tokengoldabot.txt", "r");
+            RandomAccessFile tokenFile = new RandomAccessFile("..\\fichiers_goldabot\\tokengoldabot.txt", "r");
             token = tokenFile.readLine();
             tokenFile.close();
         } catch (Exception e) {

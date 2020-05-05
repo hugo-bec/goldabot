@@ -34,19 +34,27 @@ import java.util.stream.Stream;
  *
  * implementer chance drop
  *
+ * changer paramètres :
+ * - intervalle de temps
+ * - nb message actif
+ *
  * */
 
 public class ThreadJavacord1 extends Thread {
 
     private MessageCreateEvent event;
     private RandomAccessFile fichierSave;
+    private String nomFichierSave;
     private int tempsMin, tempsMax;
     private boolean vivant;
     private int niveauActivite;
     private boolean demandeStop;
-    private Map<User, List<User>> inventaires;
-    private Map<User, Double> tauxDrop;
-    private User actualGuess;
+
+    private List<MembreCollectable> listMembre;
+        //private Map<User, List<User>> inventaires;
+        //private Map<User, Double> tauxDrop;
+    private MembreCollectable actualGuess;
+
     private int nbMessage;
     private int nbTentatives;
 
@@ -55,32 +63,33 @@ public class ThreadJavacord1 extends Thread {
         this.tempsMin = tempsMin;
         this.tempsMax = tempsMax;
         this.niveauActivite = niveauActivite;
+        this.nomFichierSave = "..\\fichiers_goldabot\\saves\\save_" + this.getServeur().getName()+ "_" + this.getServeur().getId();
 
         this.vivant = true;
         this.demandeStop = false;
-        this.tauxDrop = new HashMap<>();
-        this.inventaires = new HashMap<>();
-        initInventaires();
+        this.listMembre = new ArrayList<>();
+        //this.tauxDrop = new HashMap<>();
+        //this.inventaires = new HashMap<>();
+        initListeMembre();
 
         try {
-            //System.out.println("save_" + this.getServeur().getName()+ "_" + this.getServeur().getId());
-            File f = new File("save_" + this.getServeur().getName()+ "_" + this.getServeur().getId());
+            //System.out.println(nomFichierSave);
+            File f = new File(nomFichierSave);
             if(f.exists() && !f.isDirectory()) {
                 System.out.println("le fichier existe !");
-                this.fichierSave = new RandomAccessFile("save_" + this.getServeur().getName()+ "_" + this.getServeur().getId(), "rw");
+                this.fichierSave = new RandomAccessFile(nomFichierSave, "rw");
 
                 lireTauxDrop();
-                for (User u : this.event.getServer().get().getMembers()) {
-                    lireInventaires(u);
+                for (MembreCollectable m: this.listMembre) {
+                    lireInventaires(m);
                 }
 
                 this.fichierSave.close();
             } else {
                 System.out.println("le fichier n'existe pas !");
                 event.getChannel().sendMessage(" thread: Creation du fichier de save");
-                this.fichierSave = new RandomAccessFile("save_" + this.getServeur().getName()+ "_" + this.getServeur().getId(), "rw");
+                this.fichierSave = new RandomAccessFile(nomFichierSave, "rw");
 
-                initTauxDrop();
                 creerFichierSave();
 
                 this.fichierSave.close();
@@ -114,14 +123,10 @@ public class ThreadJavacord1 extends Thread {
                             System.out.println(mots[1]);
 
                             if (mots[1].equalsIgnoreCase(this.actualGuess.getName())) {
-                                if (Math.random() < getTauxDrop(this.actualGuess)) {
+                                if (Math.random() < this.actualGuess.getTauxDrop()) {
                                     event0.getChannel().sendMessage("Utilisateur capture !");
 
-                                    for (Map.Entry<User, List<User>> entry : this.inventaires.entrySet()) {
-                                        if (entry.getKey().getId() == event0.getMessageAuthor().getId()) {
-                                            entry.getValue().add(this.actualGuess);
-                                        }
-                                    }
+                                    getMembreById(event0.getMessageAuthor().getIdAsString()).ajouterInventaire(this.actualGuess);
                                 } else {
                                     this.event.getChannel().sendMessage("Vous n'avais pas reussi a capturer l'utilisateur !");
                                     this.nbTentatives--;
@@ -152,27 +157,9 @@ public class ThreadJavacord1 extends Thread {
                 }
 
                 if (mots[0].equalsIgnoreCase("inventaire")) {
-                    for (Map.Entry<User, List<User>> entry : this.inventaires.entrySet()) {
-                        //System.out.println(entry.getKey() + " " + event0.getMessageAuthor());
-                        //System.out.println(entry.getKey().getId() == event0.getMessageAuthor().getId());
+                    MembreCollectable mAuteur = getMembreById(event0.getMessageAuthor().getIdAsString());
 
-                        if (entry.getKey().getId() == event0.getMessageAuthor().getId()) {
-                            String messageListe;
-                            int i = 0;
-                            //System.out.println(entry.getValue());
-                            if (entry.getValue().isEmpty()){
-                                messageListe = "Votre inventaire est vide " + entry.getKey().getMentionTag() + ".";
-                            } else {
-                                messageListe = entry.getKey().getMentionTag() + " voici votre inventaire :\n";
-                                for (User u : entry.getValue()) {
-                                    messageListe += i + " | " + u.getName() + "\n";
-                                    i++;
-                                }
-                            }
-                            //System.out.println("message liste : " + messageListe);
-                            event0.getChannel().sendMessage(messageListe);
-                        }
-                    }
+                    event0.getChannel().sendMessage(mAuteur.getInventaireToString());
                 }
 
                 if (mots[0].equalsIgnoreCase("sauvegarder")) {
@@ -202,15 +189,15 @@ public class ThreadJavacord1 extends Thread {
                     if (this.actualGuess != null){
                         this.event.getChannel().sendMessage("L'utilisateur s'est enfui !");
                     }
-                    this.actualGuess = getRandomUser();
+                    this.actualGuess = getRandomMembre();
                     this.nbTentatives = randInt(1, 4);
                     this.event.getChannel().sendMessage("Un nouveau membre apparait !" + "\n"
                         + this.actualGuess.getName() + "\n"
-                        + "drop: " + getTauxDrop(this.actualGuess) + "\n"
+                        + "drop: " + this.actualGuess.getTauxDrop() + "\n"
                         + "nbTentatives: " + this.nbTentatives + "\n"
-                        + this.actualGuess.getAvatar().getUrl().toString());
+                        + this.actualGuess.getAvatarUrl().toString());
 
-                    getImageInverse();
+                    sendImageInverse(this.actualGuess);
                 }
                 this.nbMessage = 0;
 
@@ -224,22 +211,15 @@ public class ThreadJavacord1 extends Thread {
         return this.event.getServer().get();
     }
 
-    private double getTauxDrop(User u) {
-        return this.tauxDrop.get(u);
-    }
-
-
-    private User getRandomUser(){
-        Collection<User> colMembre = this.event.getServer().get().getMembers();
-        List<User> listMembre = new ArrayList(colMembre);
+    private MembreCollectable getRandomMembre(){
         int nbrMembre = listMembre.size();
         return listMembre.get(randInt(0, nbrMembre-1));
     }
 
-    private void getImageInverse(){
+    private void sendImageInverse(MembreCollectable m){
         try {
-            File filepdpi = new File("imagetest1.png");
-            URL input = this.actualGuess.getAvatar().getUrl();
+            File filepdpi = new File("..\\fichiers_goldabot\\imagetest1.png");
+            URL input = m.getAvatarUrl();
             BufferedImage image = ImageIO.read(input);
             int rgb, alpha, red, green, blue, rgbi;
 
@@ -290,7 +270,7 @@ public class ThreadJavacord1 extends Thread {
         return u;
     }*/
 
-    private static int randInt(int min, int max) {
+    private int randInt(int min, int max) {
         Random rand = new Random();
         int randomNum = rand.nextInt((max - min) + 1) + min;
         return randomNum;
@@ -299,62 +279,58 @@ public class ThreadJavacord1 extends Thread {
 
 // INITIALISATION
 
-    private void initInventaires(){
+    private void initListeMembre(){
         for (User u: this.event.getServer().get().getMembers()) {
-            this.inventaires.put(u, new ArrayList<User>());
+            this.listMembre.add(new MembreCollectable(u, false));
         }
     }
-
-    private void initTauxDrop() {
-        for (User u: this.event.getServer().get().getMembers()) {
-            this.tauxDrop.put(u, Math.random());
-        }
-    }
-
 
 
 
 // SAUVEGARDE / CHARGEMENT
 
     private void ecrireTauxDrop() throws IOException {
-        for (Map.Entry<User, Double> entry : this.tauxDrop.entrySet()){
-            this.fichierSave.write((entry.getKey().getIdAsString() + ":" + entry.getValue() + " ").getBytes());
+        for (MembreCollectable m: this.listMembre){
+            //this.fichierSave.write((entry.getKey().getIdAsString() + ":" + entry.getValue() + " ").getBytes());
+            this.fichierSave.write((m.getId() + ":" + m.getTauxDrop() + " ").getBytes());
         }
     }
+
+    private void ecrireInventaire(MembreCollectable m0) throws IOException {
+        this.fichierSave.write(("\n" + m0.getId()).getBytes());
+        for (MembreCollectable m: m0.getInventaire()) {
+            this.fichierSave.write((" " + m.getId()).getBytes());
+        }
+    }
+
 
     private void lireTauxDrop() throws IOException {
         this.fichierSave.seek(0);
         String ligned = this.fichierSave.readLine();
         if (ligned != null) {
             String[] tabd = this.stringToArray(ligned);
+
             for (int i=0; i<tabd.length; i++) {
                 String[] drop = tabd[i].split(":");
-                //System.out.println(drop[0] + " et " + drop[1]);
-                this.tauxDrop.put(this.getServeur().getMemberById(drop[0]).get(), Double.parseDouble(drop[1]));
+                getMembreById(drop[0]).setTauxDrop(Double.parseDouble(drop[1]));
             }
         }
     }
 
 
-    private void ecrireInventaire(User u0) throws IOException {
-        this.fichierSave.write(("\n" + u0.getIdAsString()).getBytes());
-        for (User u: this.inventaires.get(u0)) {
-            this.fichierSave.write((" " + u.getIdAsString()).getBytes());
-        }
-    }
-
-    private void lireInventaires(User u) throws IOException {
+    private void lireInventaires(MembreCollectable m) throws IOException {
+        MembreCollectable minv = null;
         this.fichierSave.seek(0);
-        this.fichierSave.readLine();
+        this.fichierSave.readLine();    //on saute la première ligne de drop
         String ligne = this.fichierSave.readLine();
-
         while (ligne != null) {
             String[] tabs = stringToArray(ligne);
-            if (tabs[0].equalsIgnoreCase(u.getIdAsString())) {
-                //System.out.println("meme id");
+            if (tabs[0].equalsIgnoreCase(m.getId())) {
                 if (tabs.length > 1) {
                     for (int i=1; i<tabs.length; i++) {
-                        this.inventaires.get(u).add(this.getServeur().getMemberById(tabs[i]).get());
+                        minv = getMembreById(tabs[i]);
+
+                        if (minv != null) { m.ajouterInventaire(minv); }
                     }
                 }
             }
@@ -364,13 +340,13 @@ public class ThreadJavacord1 extends Thread {
 
 
     private void creerFichierSave() throws IOException {
-        File f = new File("save_" + this.getServeur().getName()+ "_" + this.getServeur().getId());
+        File f = new File(nomFichierSave);
         f.delete();
 
-        this.fichierSave = new RandomAccessFile("save_" + this.getServeur().getName()+ "_" + this.getServeur().getId(), "rw");
+        this.fichierSave = new RandomAccessFile(nomFichierSave, "rw");
         this.ecrireTauxDrop();
-        for (User u: this.getServeur().getMembers()) {
-            ecrireInventaire(u);
+        for (MembreCollectable m: this.listMembre) {
+            ecrireInventaire(m);
         }
         this.fichierSave.close();
     }
@@ -381,7 +357,14 @@ public class ThreadJavacord1 extends Thread {
 
 
 
-
+    private MembreCollectable getMembreById(String id){
+        for (MembreCollectable m: this.listMembre) {
+            if (m.getId().equalsIgnoreCase(id)){
+                return m;
+            }
+        }
+        return null;
+    }
 
     private String[] stringToArray(String s){
         String[] words = s.split(" ");
