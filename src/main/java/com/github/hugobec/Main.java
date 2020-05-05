@@ -36,19 +36,24 @@ public class Main {
         thas.start();
 
         api.addMessageCreateListener(event -> {
-            String[] mots = stringToArray(event.getMessageContent());
+            String[] tabRequete = stringToArray(event.getMessageContent());
 
-            if (mots[0].equalsIgnoreCase("ping")) {
+            if (tabRequete[0].equalsIgnoreCase("ping")) {
                 event.getChannel().sendMessage("Pong!");
             }
 
-            else if (mots[0].equalsIgnoreCase("lancer")) {
-                if (mots.length == 4) {
+            else if (tabRequete[0].equalsIgnoreCase("lancer")) {
+                if (tabRequete.length == 4) {
                     try{
-                        int nbactif = Integer.parseInt(mots[1]);
-                        int tempsMin = Integer.parseInt(mots[2]);
-                        int tempsMax = Integer.parseInt(mots[3]);
-                        lancerThread(event, nbactif, tempsMin, tempsMax);
+                        int nbactif = Integer.parseInt(tabRequete[1]);
+                        int tempsMin = Integer.parseInt(tabRequete[2]);
+                        int tempsMax = Integer.parseInt(tabRequete[3]);
+                        if (tempsMin <= tempsMax) {
+                            lancerThread(event, nbactif, tempsMin, tempsMax);
+                        }
+                        else {
+                            event.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax");
+                        }
                     } catch (NumberFormatException nfe){
                         //nfe.getMessage();
                         event.getChannel().sendMessage("Erreur: vous devez specifier 3 entiers.");
@@ -60,7 +65,7 @@ public class Main {
                 }
             }
 
-            else if (mots[0].equalsIgnoreCase("stop")) {
+            else if (tabRequete[0].equalsIgnoreCase("stop")) {
                 stopperThread(event);
             }
 
@@ -68,15 +73,44 @@ public class Main {
             else {
                 ThreadJavacord1 thj = getThreadLance(event.getServer().get().getId());
                 if (thj != null) {
-                    if (mots[0].equalsIgnoreCase("capture")) {
+                    if (tabRequete[0].equalsIgnoreCase("capture")) {
                         thj.eventCapture(event.getMessageContent(), event);
                     }
-                    else if (mots[0].equalsIgnoreCase("inventaire")) {
+                    else if (tabRequete[0].equalsIgnoreCase("inventaire")) {
                         thj.eventInventaire(event);
                     }
-                    else if (mots[0].equalsIgnoreCase("sauvegarder")) {
+                    else if (tabRequete[0].equalsIgnoreCase("sauvegarder")) {
                         thj.eventSauvegarder(event);
                     }
+                    else if (tabRequete[0].equalsIgnoreCase("changer")) {
+                        if (tabRequete.length == 3){
+                            if (tabRequete[1].equalsIgnoreCase("tauxex")){
+                                thj.setTauxEx(Double.parseDouble(tabRequete[2]));
+                            }
+                            else if (tabRequete[1].equalsIgnoreCase("messageactif")){
+                                thj.setNiveauActivite(Integer.parseInt(tabRequete[2]));
+                            }
+                            else {
+                                event.getChannel().sendMessage("Erreur: \"" + tabRequete[1] + "\" inconnu.");
+                            }
+                        }
+                        else if (tabRequete.length == 4) {
+                            if (tabRequete[1].equalsIgnoreCase("intervalle")) {
+                                int tempsMin = Integer.parseInt(tabRequete[2]);
+                                int tempsMax = Integer.parseInt(tabRequete[3]);
+                                if (tempsMin <= tempsMax) {
+                                    thj.setIntervalleTemps(tempsMin, tempsMax);
+                                }
+                                else {
+                                    event.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax");
+                                }
+                            }
+                        }
+                        else {
+                            event.getChannel().sendMessage("Veuillez donner le nom du paramètre et la/les variable(s) associée(s).");
+                        }
+                    }
+                    
                     thj.incrementerNbMessage();
                 }
             }

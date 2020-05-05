@@ -43,59 +43,49 @@ public class ThreadJavacord1 extends Thread {
     private RandomAccessFile fichierSave;
     private String nomFichierSave;
     private int tempsMin, tempsMax;
-    private boolean vivant;
+    private double tauxEx;
     private int niveauActivite;
     private boolean demandeStop;
 
     private List<MembreCollectable> listMembre;
-        //private Map<User, List<User>> inventaires;
-        //private Map<User, Double> tauxDrop;
     private MembreCollectable actualGuess;
 
     private int nbMessage;
     private int nbTentatives;
 
+
     public ThreadJavacord1(MessageCreateEvent event, int niveauActivite, int tempsMin, int tempsMax) {
         this.event = event;
         this.tempsMin = tempsMin;
         this.tempsMax = tempsMax;
+        this.tauxEx = 0.1;
         this.niveauActivite = niveauActivite;
         this.nomFichierSave = "..\\fichiers_goldabot\\saves\\save_" + this.getServeur().getName()+ "_" + this.getServeur().getId();
-
-        this.vivant = true;
         this.demandeStop = false;
         this.listMembre = new ArrayList<>();
-        //this.tauxDrop = new HashMap<>();
-        //this.inventaires = new HashMap<>();
         initListeMembre();
 
         try {
-            //System.out.println(nomFichierSave);
             File f = new File(nomFichierSave);
-            if(f.exists() && !f.isDirectory()) {
-                System.out.println("le fichier existe !");
+            if(f.exists() && !f.isDirectory())      //Le fichier de sauvegarde existe déjà
+            {
                 this.fichierSave = new RandomAccessFile(nomFichierSave, "rw");
-
                 lireTauxDrop();
                 for (MembreCollectable m: this.listMembre) {
                     lireInventaires(m);
                 }
-
                 this.fichierSave.close();
-            } else {
-                System.out.println("le fichier n'existe pas !");
+            }
+            else {    //Le fichier de sauvegarde n'existe pas encore
                 event.getChannel().sendMessage(" thread: Creation du fichier de save");
                 this.fichierSave = new RandomAccessFile(nomFichierSave, "rw");
-
                 creerFichierSave();
-
                 this.fichierSave.close();
             }
         } catch (IOException ioe) {
             event.getChannel().sendMessage("thread: Erreur lors de l'ouverture / lecture / ecriture du fichier de sauvegarde.");
             ioe.getMessage();
         }
-
         event.getChannel().sendMessage("thread: thread configure");
     }
 
@@ -108,7 +98,6 @@ public class ThreadJavacord1 extends Thread {
                 boolean activity = false;
                 Thread.sleep(randInt(tempsMin, tempsMax) * 100); //*60000
                 if (this.demandeStop) {
-                    this.vivant = false;
                     this.event.getChannel().sendMessage("thread stoppe");
                     break;
                 }
@@ -173,13 +162,14 @@ public class ThreadJavacord1 extends Thread {
         return filepdpi;
     }
 
-    /*private User dropUser(){
-        User u;
-        if (Math.random() < 0.1) {
-
+    private MembreCollectable dropMembreCollectable(){
+        if (Math.random() < this.tauxEx) {
+            MembreCollectable m = getRandomMembre();
+            m.setEX(true);
+            return m;
         }
-        return u;
-    }*/
+        return getRandomMembre();
+    }
 
 
 
@@ -192,6 +182,10 @@ public class ThreadJavacord1 extends Thread {
     public void setIntervalleTemps(int tempsMin, int tempsMax) {
         this.tempsMin = tempsMin;
         this.tempsMax = tempsMax;
+    }
+
+    public void setTauxEx(double taux){
+        this.tauxEx = taux;
     }
 
     public void setDemandeStop(boolean b){

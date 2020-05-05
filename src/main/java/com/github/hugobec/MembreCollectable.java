@@ -43,6 +43,9 @@ public class MembreCollectable {
     public void setTauxDrop(double tauxDrop) {
         this.tauxDrop = tauxDrop;
     }
+    public void setEX(boolean EX) {
+        isEX = EX;
+    }
 
     public void ajouterInventaire(MembreCollectable m){
         this.inventaire.add(m);
