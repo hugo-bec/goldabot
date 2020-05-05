@@ -1,8 +1,10 @@
 package com.github.hugobec;
 import org.javacord.api.*;
 import org.javacord.api.DiscordApi;
+import org.javacord.api.entity.channel.Channel;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.server.Server;
+import org.javacord.api.event.Event;
 import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.entity.user.User;
 
@@ -12,7 +14,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.math.RoundingMode;
 import java.net.URL;
-import java.nio.channels.Channel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,11 +33,7 @@ import java.util.stream.Stream;
  *
  * Système d'échange
  *
- * implementer chance drop
  *
- * changer paramètres :
- * - intervalle de temps
- * - nb message actif
  *
  * */
 
@@ -98,82 +95,13 @@ public class ThreadJavacord1 extends Thread {
             event.getChannel().sendMessage("thread: Erreur lors de l'ouverture / lecture / ecriture du fichier de sauvegarde.");
             ioe.getMessage();
         }
+
+        event.getChannel().sendMessage("thread: thread configure");
     }
 
-    public void setDemandeStop(boolean b){
-        this.demandeStop = b;
-    }
 
     public void run(){
         event.getChannel().sendMessage("thread: thread start");
-
-        this.event.getApi().addMessageCreateListener(event0 -> {
-            if (event0.getServer().get().getId() == this.event.getServer().get().getId() && this.vivant) {
-                //System.out.println(event0.getServer().get());
-                this.nbMessage++;
-
-                String[] mots = stringToArray(event0.getMessageContent());
-
-                if (mots[0].equalsIgnoreCase("capture")) {
-                    if (this.actualGuess != null) {
-                        if (mots.length > 1) {
-                            mots[1] = event0.getMessageContent().substring("capture ".length());
-
-                            System.out.println(this.actualGuess.getName());
-                            System.out.println(mots[1]);
-
-                            if (mots[1].equalsIgnoreCase(this.actualGuess.getName())) {
-                                if (Math.random() < this.actualGuess.getTauxDrop()) {
-                                    event0.getChannel().sendMessage("Utilisateur capture !");
-
-                                    getMembreById(event0.getMessageAuthor().getIdAsString()).ajouterInventaire(this.actualGuess);
-                                } else {
-                                    this.event.getChannel().sendMessage("Vous n'avais pas reussi a capturer l'utilisateur !");
-                                    this.nbTentatives--;
-                                    if (this.nbTentatives <= 0) {
-                                        this.actualGuess = null;
-                                        this.event.getChannel().sendMessage("L'utilisateur s'est enfui !");
-                                    }
-                                }
-
-                                //System.out.println(this.inventaires);
-                                //this.actualGuess = null;
-                            } else {
-                                event0.getChannel().sendMessage("Incorrect, ce n'est pas son nom !");
-                                this.nbTentatives--;
-                                if (this.nbTentatives <= 0) {
-                                    this.actualGuess = null;
-                                    this.event.getChannel().sendMessage("L'utilisateur s'est enfui !");
-                                }
-                            }
-                        } else {
-                            event0.getChannel().sendMessage(
-                                    "Veuillez donner le nom de l'utilisateur");
-                        }
-                    } else {
-                        event0.getChannel().sendMessage(
-                                "L'utilisateur a deja ete capture ! Attendez qu'un nouvel utilisateur apparaisse.");
-                    }
-                }
-
-                if (mots[0].equalsIgnoreCase("inventaire")) {
-                    MembreCollectable mAuteur = getMembreById(event0.getMessageAuthor().getIdAsString());
-
-                    event0.getChannel().sendMessage(mAuteur.getInventaireToString());
-                }
-
-                if (mots[0].equalsIgnoreCase("sauvegarder")) {
-                    try {
-                        creerFichierSave();
-                    } catch (IOException ioe) {
-                        event.getChannel().sendMessage("thread: Erreur lors de la creation du fichier de sauvegarde.");
-                        ioe.getMessage();
-                    }
-                }
-            }
-        });
-
-        event.getChannel().sendMessage("thread: thread configure");
 
         while(true){
             try {
@@ -197,7 +125,11 @@ public class ThreadJavacord1 extends Thread {
                         + "nbTentatives: " + this.nbTentatives + "\n"
                         + this.actualGuess.getAvatarUrl().toString());
 
-                    sendImageInverse(this.actualGuess);
+                    try {
+                        getImageInverse(this.actualGuess);
+                    } catch (Exception e){
+                        e.getMessage();
+                    }
                 }
                 this.nbMessage = 0;
 
@@ -216,50 +148,29 @@ public class ThreadJavacord1 extends Thread {
         return listMembre.get(randInt(0, nbrMembre-1));
     }
 
-    private void sendImageInverse(MembreCollectable m){
-        try {
-            File filepdpi = new File("..\\fichiers_goldabot\\imagetest1.png");
-            URL input = m.getAvatarUrl();
-            BufferedImage image = ImageIO.read(input);
-            int rgb, alpha, red, green, blue, rgbi;
+    private File getImageInverse(MembreCollectable m) throws Exception{
+        File filepdpi = new File("..\\fichiers_goldabot\\imagetest1.png");
+        URL input = m.getAvatarUrl();
+        BufferedImage image = ImageIO.read(input);
+        int rgb, alpha, red, green, blue, rgbi;
 
-            for (int x = 0; x < image.getWidth(); x++) {
-                for (int y = 0; y < image.getHeight(); y++) {
-                    rgb = image.getRGB(x, y);
-                    alpha = (rgb >> 24) & 0xFF;
-                    red =   (rgb >> 16) & 0xFF;
-                    green = (rgb >>  8) & 0xFF;
-                    blue =  (rgb      ) & 0xFF;
+        for (int x = 0; x < image.getWidth(); x++) {
+            for (int y = 0; y < image.getHeight(); y++) {
+                rgb = image.getRGB(x, y);
+                alpha = (rgb >> 24) & 0xFF;
+                red =   (rgb >> 16) & 0xFF;
+                green = (rgb >>  8) & 0xFF;
+                blue =  (rgb      ) & 0xFF;
 
-                    rgbi = (255-blue) + (255-green)*256 + (255-red)*256*256 + alpha*256*256*256;
-                    image.setRGB(x, y, rgbi);
-                }
+                rgbi = (255-blue) + (255-green)*256 + (255-red)*256*256 + alpha*256*256*256;
+                image.setRGB(x, y, rgbi);
             }
-
-            /*
-            int rgb = image.getRGB(0, 0);
-            int alpha = (rgb >> 24) & 0xFF;
-            int red =   (rgb >> 16) & 0xFF;
-            int green = (rgb >>  8) & 0xFF;
-            int blue =  (rgb      ) & 0xFF;
-
-            int rgbi = (255-blue) + (255-green)*256 + (255-red)*256*256 + alpha*256*256*256;
-            int alphai = (rgbi >> 24) & 0xFF;
-            int redi =   (rgbi >> 16) & 0xFF;
-            int greeni = (rgbi >>  8) & 0xFF;
-            int bluei =  (rgbi      ) & 0xFF;
-
-            System.out.println("couleur originale: alpha: " + alpha + ", rouge:" + red + ", vert:" + green + ", bleu:" + blue);
-            System.out.println("resultat obtenu: alpha: " + alphai + ", rouge:" + redi + ", vert:" + greeni + ", bleu:" + bluei);
-            System.out.println("resultat attendu: alpha: " + alpha + ", rouge:" + (255-red) + ", vert:" + (255-green) + ", bleu:" + (255-blue));
-            */
-
-            ImageIO.write(image, "png", filepdpi);
-            this.event.getChannel().sendMessage(filepdpi);
-
-        } catch (Exception e){
-            e.getMessage();
         }
+
+        ImageIO.write(image, "png", filepdpi);
+        this.event.getChannel().sendMessage(filepdpi);
+
+        return filepdpi;
     }
 
     /*private User dropUser(){
@@ -270,12 +181,88 @@ public class ThreadJavacord1 extends Thread {
         return u;
     }*/
 
-    private int randInt(int min, int max) {
-        Random rand = new Random();
-        int randomNum = rand.nextInt((max - min) + 1) + min;
-        return randomNum;
+
+
+// SETTER
+
+    public void setNiveauActivite(int niveauActivite) {
+        this.niveauActivite = niveauActivite;
     }
 
+    public void setIntervalleTemps(int tempsMin, int tempsMax) {
+        this.tempsMin = tempsMin;
+        this.tempsMax = tempsMax;
+    }
+
+    public void setDemandeStop(boolean b){
+        this.demandeStop = b;
+    }
+
+
+
+// EVENT
+
+    public void eventCapture(String requete, MessageCreateEvent eventReq){
+        if (this.actualGuess != null) {
+            String[] tabRequete = stringToArray(requete);
+            if (tabRequete.length > 1) {
+                String contenuReq = requete.substring("capture ".length());
+
+                System.out.println(this.actualGuess.getName());
+                System.out.println(contenuReq);
+
+                if (contenuReq.equalsIgnoreCase(this.actualGuess.getName())) {
+                    if (Math.random() < this.actualGuess.getTauxDrop()) {
+                        eventReq.getChannel().sendMessage("Utilisateur capture !");
+
+                        getMembreById(eventReq.getMessageAuthor().getIdAsString()).ajouterInventaire(this.actualGuess);
+                    } else {
+                        this.event.getChannel().sendMessage("Vous n'avais pas reussi a capturer l'utilisateur !");
+                        this.nbTentatives--;
+                        if (this.nbTentatives <= 0) {
+                            this.actualGuess = null;
+                            this.event.getChannel().sendMessage("L'utilisateur s'est enfui !");
+                        }
+                    }
+
+                    //System.out.println(this.inventaires);
+                    //this.actualGuess = null;
+                } else {
+                    eventReq.getChannel().sendMessage("Incorrect, ce n'est pas son nom !");
+                    this.nbTentatives--;
+                    if (this.nbTentatives <= 0) {
+                        this.actualGuess = null;
+                        this.event.getChannel().sendMessage("L'utilisateur s'est enfui !");
+                    }
+                }
+            } else {
+                eventReq.getChannel().sendMessage(
+                        "Veuillez donner le nom de l'utilisateur");
+            }
+        } else {
+            eventReq.getChannel().sendMessage(
+                    "L'utilisateur a deja ete capture ! Attendez qu'un nouvel utilisateur apparaisse.");
+        }
+    }
+
+
+    public void eventInventaire(MessageCreateEvent eventReq){
+        MembreCollectable mAuteur = getMembreById(eventReq.getMessageAuthor().getIdAsString());
+
+        eventReq.getChannel().sendMessage(mAuteur.getInventaireToString());
+    }
+
+
+    public void eventSauvegarder(MessageCreateEvent eventReq){
+        try {
+            creerFichierSave();
+        } catch (IOException ioe) {
+            eventReq.getChannel().sendMessage("thread: Erreur lors de la creation du fichier de sauvegarde.");
+            ioe.getMessage();
+        }
+    }
+
+    public void incrementerNbMessage(){ this.nbMessage++; }
 
 // INITIALISATION
 
@@ -357,6 +344,8 @@ public class ThreadJavacord1 extends Thread {
 
 
 
+// OUTILS
+
     private MembreCollectable getMembreById(String id){
         for (MembreCollectable m: this.listMembre) {
             if (m.getId().equalsIgnoreCase(id)){
@@ -369,6 +358,12 @@ public class ThreadJavacord1 extends Thread {
     private String[] stringToArray(String s){
         String[] words = s.split(" ");
         return words;
+    }
+
+    private int randInt(int min, int max) {
+        Random rand = new Random();
+        int randomNum = rand.nextInt((max - min) + 1) + min;
+        return randomNum;
     }
 
 }

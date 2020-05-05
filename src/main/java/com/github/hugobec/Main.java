@@ -2,6 +2,7 @@ package com.github.hugobec;
 
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
+import org.javacord.api.entity.channel.Channel;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.event.message.MessageCreateEvent;
@@ -34,33 +35,14 @@ public class Main {
         ThreadAppelSave thas = new ThreadAppelSave(1, listThread);
         thas.start();
 
-        // Add a listener which answers with "Pong!" if someone writes "!ping"
         api.addMessageCreateListener(event -> {
             String[] mots = stringToArray(event.getMessageContent());
-            /*for (int i=0; i<mots.length; i++) {
-                System.out.print(mots[i] + "+");
-            }
-            System.out.println();*/
 
             if (mots[0].equalsIgnoreCase("ping")) {
                 event.getChannel().sendMessage("Pong!");
             }
 
-            if (mots[0].equalsIgnoreCase("users")) {
-                Optional<Server> oserveur = event.getServer();
-                Server serveur = oserveur.get();
-                Collection<User> users = serveur.getMembers();
-
-                List<String> usersNames = new ArrayList<>();
-                for (User u: users) {
-                    usersNames.add(u.getName());
-                }
-
-                event.getChannel().sendMessage(usersNames.toString());
-            }
-
-
-            if (mots[0].equalsIgnoreCase("lancer")) {
+            else if (mots[0].equalsIgnoreCase("lancer")) {
                 if (mots.length == 4) {
                     try{
                         int nbactif = Integer.parseInt(mots[1]);
@@ -78,8 +60,25 @@ public class Main {
                 }
             }
 
-            if (event.getMessage().getContent().equalsIgnoreCase("stop")) {
+            else if (mots[0].equalsIgnoreCase("stop")) {
                 stopperThread(event);
+            }
+
+
+            else {
+                ThreadJavacord1 thj = getThreadLance(event.getServer().get().getId());
+                if (thj != null) {
+                    if (mots[0].equalsIgnoreCase("capture")) {
+                        thj.eventCapture(event.getMessageContent(), event);
+                    }
+                    else if (mots[0].equalsIgnoreCase("inventaire")) {
+                        thj.eventInventaire(event);
+                    }
+                    else if (mots[0].equalsIgnoreCase("sauvegarder")) {
+                        thj.eventSauvegarder(event);
+                    }
+                    thj.incrementerNbMessage();
+                }
             }
 
         });
@@ -121,9 +120,19 @@ public class Main {
         }
     }
 
+
     public static String[] stringToArray(String s){
         String[] words = s.split(" ");
         return words;
+    }
+
+    public static ThreadJavacord1 getThreadLance(long id) {
+        for (ThreadJavacord1 thj: listThread){
+            if (thj.getServeur().getId() == id){
+                return thj;
+            }
+        }
+        return null;
     }
 
 }
