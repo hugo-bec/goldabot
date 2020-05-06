@@ -20,6 +20,13 @@ public class MembreCollectable {
         this.inventaire = new ArrayList<>();
     }
 
+    public MembreCollectable(MembreCollectable m) {
+        this.membre = m.membre;
+        this.isEX = m.isEX;
+        this.tauxDrop = m.tauxDrop;
+        this.inventaire = m.inventaire;
+    }
+
     public boolean isEX() {
         return isEX;
     }
@@ -53,7 +60,7 @@ public class MembreCollectable {
 
 
     public String getInventaireToString(){
-        String stringInventaire = "";
+        String stringInventaire = ">>> ";
         int i = 0;
         if (this.getInventaire().isEmpty()){
             stringInventaire += "Votre inventaire est vide " + this.membre.getMentionTag() + ".";
@@ -62,7 +69,7 @@ public class MembreCollectable {
             for (MembreCollectable m: this.inventaire) {
                 stringInventaire += "\n" + i + " | " + m.membre.getName();
                 if (m.isEX()) {
-                    stringInventaire += "EX";
+                    stringInventaire += " **EX**";
                 }
                 i++;
             }

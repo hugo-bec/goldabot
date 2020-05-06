@@ -43,25 +43,28 @@ public class Main {
             }
 
             else if (tabRequete[0].equalsIgnoreCase("lancer")) {
-                if (tabRequete.length == 4) {
-                    try{
-                        int nbactif = Integer.parseInt(tabRequete[1]);
-                        int tempsMin = Integer.parseInt(tabRequete[2]);
-                        int tempsMax = Integer.parseInt(tabRequete[3]);
-                        if (tempsMin <= tempsMax) {
-                            lancerThread(event, nbactif, tempsMin, tempsMax);
+                if (event.getMessageAuthor().isServerAdmin()) {
+                    if (tabRequete.length == 4) {
+                        try {
+                            int nbactif = Integer.parseInt(tabRequete[1]);
+                            int tempsMin = Integer.parseInt(tabRequete[2]);
+                            int tempsMax = Integer.parseInt(tabRequete[3]);
+                            if (tempsMin <= tempsMax) {
+                                lancerThread(event, nbactif, tempsMin, tempsMax);
+                            } else {
+                                event.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax.");
+                            }
+                        } catch (NumberFormatException nfe) {
+                            //nfe.getMessage();
+                            event.getChannel().sendMessage("Erreur: vous devez specifier 3 entiers.");
                         }
-                        else {
-                            event.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax.");
-                        }
-                    } catch (NumberFormatException nfe){
-                        //nfe.getMessage();
-                        event.getChannel().sendMessage("Erreur: vous devez specifier 3 entiers.");
+                    } else {
+                        event.getChannel().sendMessage("Erreur: vous devez specifier 3 entiers:\n"
+                                + "Un pour le nombre de message correspondant à une activité minimum,\n"
+                                + "2 autres entiers pour spécifier l'intervale de temps entre les apparitions.");
                     }
                 } else {
-                    event.getChannel().sendMessage("Erreur: vous devez specifier 3 entiers:\n"
-                            + "Un pour le nombre de message correspondant à une activité minimum,\n"
-                            + "2 autres entiers pour spécifier l'intervale de temps entre les apparitions.");
+                    event.getChannel().sendMessage("Vous devez être administrateur pour lancer.");
                 }
             }
 
@@ -83,35 +86,37 @@ public class Main {
                         thj.eventSauvegarder(event);
                     }
                     else if (tabRequete[0].equalsIgnoreCase("changer")) {
-                        if (tabRequete.length == 3){
-                            if (tabRequete[1].equalsIgnoreCase("tauxex")){
-                                thj.setTauxEx(Double.parseDouble(tabRequete[2]));
-                                event.getChannel().sendMessage("Taux d'apparition Ex change !");
-                            }
-                            else if (tabRequete[1].equalsIgnoreCase("messageactif")){
-                                thj.setNiveauActivite(Integer.parseInt(tabRequete[2]));
-                                event.getChannel().sendMessage("Nombre de message minimum pour considérer une activite change !");
-                            }
-                            else {
-                                event.getChannel().sendMessage("Erreur: \"" + tabRequete[1] + "\" inconnu.");
-                            }
-                        }
-                        else if (tabRequete.length == 4) {
-                            if (tabRequete[1].equalsIgnoreCase("intervalle")) {
-                                int tempsMin = Integer.parseInt(tabRequete[2]);
-                                int tempsMax = Integer.parseInt(tabRequete[3]);
-                                if (tempsMin <= tempsMax) {
-                                    thj.setIntervalleTemps(tempsMin, tempsMax);
-                                    event.getChannel().sendMessage("Intervalle entre les apparitions change !");
+                        if (event.getMessageAuthor().isServerAdmin()) {
+                            if (tabRequete.length == 3) {
+                                if (tabRequete[1].equalsIgnoreCase("tauxex")) {
+                                    thj.setTauxEx(Double.parseDouble(tabRequete[2]));
+                                    event.getChannel().sendMessage("Taux d'apparition Ex change !");
+                                } else if (tabRequete[1].equalsIgnoreCase("messageactif")) {
+                                    thj.setNiveauActivite(Integer.parseInt(tabRequete[2]));
+                                    event.getChannel().sendMessage("Nombre de message minimum pour considérer une activite change !");
+                                } else {
+                                    event.getChannel().sendMessage("Erreur: \"" + tabRequete[1] + "\" inconnu.");
                                 }
-                                else {
-                                    event.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax.");
+                            } else if (tabRequete.length == 4) {
+                                if (tabRequete[1].equalsIgnoreCase("intervalle")) {
+                                    int tempsMin = Integer.parseInt(tabRequete[2]);
+                                    int tempsMax = Integer.parseInt(tabRequete[3]);
+                                    if (tempsMin <= tempsMax) {
+                                        thj.setIntervalleTemps(tempsMin, tempsMax);
+                                        event.getChannel().sendMessage("Intervalle entre les apparitions change !");
+                                    } else {
+                                        event.getChannel().sendMessage("tempsMin doit être inferieur à tempsMax.");
+                                    }
                                 }
+                            } else {
+                                event.getChannel().sendMessage("Veuillez donner le nom du paramètre et la/les variable(s) associée(s).");
                             }
+                        } else {
+                            event.getChannel().sendMessage("Vous devez être administrateur pour changer les paramètres.");
                         }
-                        else {
-                            event.getChannel().sendMessage("Veuillez donner le nom du paramètre et la/les variable(s) associée(s).");
-                        }
+                    }
+                    else if(tabRequete[0].equalsIgnoreCase("echanger")){
+
                     }
                     
                     thj.incrementerNbMessage();

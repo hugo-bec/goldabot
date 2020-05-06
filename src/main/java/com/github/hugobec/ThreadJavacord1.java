@@ -33,7 +33,7 @@ import java.util.stream.Stream;
  *
  * Système d'échange
  *
- *
+ * sauvegarder Ex
  *
  * */
 
@@ -108,21 +108,20 @@ public class ThreadJavacord1 extends Thread {
                     }
                     this.actualGuess = dropMembreCollectable();
                     this.nbTentatives = randInt(1, 4);
-                    String messageSpawn = "Un nouveau membre apparait !" + "\n"
+                    String messageSpawn = ">>> Un nouveau membre apparait !" + "\n"
                         + this.actualGuess.getName() + "\n"
                         + "drop: " + this.actualGuess.getTauxDrop() + "\n"
                         + "nbTentatives: " + this.nbTentatives + "\n";
 
-                    if (this.actualGuess.isEX()) {
-                        try {
+                    try {
+                        if (this.actualGuess.isEX()) {
                             this.event.getChannel().sendMessage(messageSpawn, getImageInverse(this.actualGuess));
-                        } catch (Exception e){
-                            e.getMessage();
+                        } else {
+                            this.event.getChannel().sendMessage(messageSpawn, getImageOriginale(this.actualGuess));
                         }
-                    } else {
-                        this.event.getChannel().sendMessage(messageSpawn + this.actualGuess.getAvatarUrl().toString());
+                    } catch (Exception e){
+                        e.getMessage();
                     }
-
                 }
                 this.nbMessage = 0;
 
@@ -142,7 +141,7 @@ public class ThreadJavacord1 extends Thread {
     }
 
     private File getImageInverse(MembreCollectable m) throws Exception{
-        File filepdpi = new File("..\\fichiers_goldabot\\imagetest1.png");
+        File filepdpi = new File("..\\fichiers_goldabot\\pdpinverse1.png");
         URL input = m.getAvatarUrl();
         BufferedImage image = ImageIO.read(input);
         int rgb, alpha, red, green, blue, rgbi;
@@ -166,9 +165,18 @@ public class ThreadJavacord1 extends Thread {
         return filepdpi;
     }
 
+    private File getImageOriginale(MembreCollectable m) throws Exception{
+        File filepdpi = new File("..\\fichiers_goldabot\\pdporiginale1.png");
+        URL input = m.getAvatarUrl();
+        BufferedImage image = ImageIO.read(input);
+        ImageIO.write(image, "png", filepdpi);
+
+        return filepdpi;
+    }
+
     private MembreCollectable dropMembreCollectable(){
         if (Math.random() < this.tauxEx) {
-            MembreCollectable m = getRandomMembre();
+            MembreCollectable m = new MembreCollectable(getRandomMembre());
             m.setEX(true);
             return m;
         }
@@ -254,6 +262,7 @@ public class ThreadJavacord1 extends Thread {
     public void eventSauvegarder(MessageCreateEvent eventReq){
         try {
             creerFichierSave();
+            eventReq.getChannel().sendMessage("Sauvegarde faite !");
         } catch (IOException ioe) {
             eventReq.getChannel().sendMessage("thread: Erreur lors de la creation du fichier de sauvegarde.");
             ioe.getMessage();
@@ -284,7 +293,11 @@ public class ThreadJavacord1 extends Thread {
     private void ecrireInventaire(MembreCollectable m0) throws IOException {
         this.fichierSave.write(("\n" + m0.getId()).getBytes());
         for (MembreCollectable m: m0.getInventaire()) {
-            this.fichierSave.write((" " + m.getId()).getBytes());
+            if (m.isEX()) {
+                this.fichierSave.write((" +" + m.getId()).getBytes());
+            } else {
+                this.fichierSave.write((" " + m.getId()).getBytes());
+            }
         }
     }
 
@@ -313,7 +326,16 @@ public class ThreadJavacord1 extends Thread {
             if (tabs[0].equalsIgnoreCase(m.getId())) {
                 if (tabs.length > 1) {
                     for (int i=1; i<tabs.length; i++) {
-                        minv = getMembreById(tabs[i]);
+                        if (tabs[i].charAt(0) == '+') {
+                            System.out.println("Ex trouvé");
+                            MembreCollectable minv0 = getMembreById(tabs[i].substring("+".length()));
+                            if (minv0 != null) {
+                                minv = new MembreCollectable(minv0);
+                                minv.setEX(true);
+                            }
+                        } else {
+                            minv = getMembreById(tabs[i]);
+                        }
 
                         if (minv != null) { m.ajouterInventaire(minv); }
                     }

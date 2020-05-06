@@ -21,7 +21,7 @@ public class ThreadAppelSave extends Thread {
             }
 
             try {
-                Thread.sleep(minutes * 6000/*60000*/);
+                Thread.sleep(minutes * 60000);
             } catch (InterruptedException ie) {
                 ie.getMessage();
             }
