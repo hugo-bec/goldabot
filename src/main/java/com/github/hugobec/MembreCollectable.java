@@ -58,9 +58,12 @@ public class MembreCollectable {
         if (this.getInventaire().isEmpty()){
             stringInventaire += "Votre inventaire est vide " + this.membre.getMentionTag() + ".";
         } else {
-            stringInventaire += this.membre.getMentionTag() + " voici votre inventaire :\n";
+            stringInventaire += this.membre.getMentionTag() + " voici votre inventaire :";
             for (MembreCollectable m: this.inventaire) {
-                stringInventaire += i + " | " + m.membre.getName() + "\n";
+                stringInventaire += "\n" + i + " | " + m.membre.getName();
+                if (m.isEX()) {
+                    stringInventaire += "EX";
+                }
                 i++;
             }
         }

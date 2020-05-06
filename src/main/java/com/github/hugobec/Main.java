@@ -52,7 +52,7 @@ public class Main {
                             lancerThread(event, nbactif, tempsMin, tempsMax);
                         }
                         else {
-                            event.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax");
+                            event.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax.");
                         }
                     } catch (NumberFormatException nfe){
                         //nfe.getMessage();
@@ -86,9 +86,11 @@ public class Main {
                         if (tabRequete.length == 3){
                             if (tabRequete[1].equalsIgnoreCase("tauxex")){
                                 thj.setTauxEx(Double.parseDouble(tabRequete[2]));
+                                event.getChannel().sendMessage("Taux d'apparition Ex change !");
                             }
                             else if (tabRequete[1].equalsIgnoreCase("messageactif")){
                                 thj.setNiveauActivite(Integer.parseInt(tabRequete[2]));
+                                event.getChannel().sendMessage("Nombre de message minimum pour considérer une activite change !");
                             }
                             else {
                                 event.getChannel().sendMessage("Erreur: \"" + tabRequete[1] + "\" inconnu.");
@@ -100,9 +102,10 @@ public class Main {
                                 int tempsMax = Integer.parseInt(tabRequete[3]);
                                 if (tempsMin <= tempsMax) {
                                     thj.setIntervalleTemps(tempsMin, tempsMax);
+                                    event.getChannel().sendMessage("Intervalle entre les apparitions change !");
                                 }
                                 else {
-                                    event.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax");
+                                    event.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax.");
                                 }
                             }
                         }

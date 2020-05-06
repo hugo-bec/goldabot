@@ -106,19 +106,23 @@ public class ThreadJavacord1 extends Thread {
                     if (this.actualGuess != null){
                         this.event.getChannel().sendMessage("L'utilisateur s'est enfui !");
                     }
-                    this.actualGuess = getRandomMembre();
+                    this.actualGuess = dropMembreCollectable();
                     this.nbTentatives = randInt(1, 4);
-                    this.event.getChannel().sendMessage("Un nouveau membre apparait !" + "\n"
+                    String messageSpawn = "Un nouveau membre apparait !" + "\n"
                         + this.actualGuess.getName() + "\n"
                         + "drop: " + this.actualGuess.getTauxDrop() + "\n"
-                        + "nbTentatives: " + this.nbTentatives + "\n"
-                        + this.actualGuess.getAvatarUrl().toString());
+                        + "nbTentatives: " + this.nbTentatives + "\n";
 
-                    try {
-                        getImageInverse(this.actualGuess);
-                    } catch (Exception e){
-                        e.getMessage();
+                    if (this.actualGuess.isEX()) {
+                        try {
+                            this.event.getChannel().sendMessage(messageSpawn, getImageInverse(this.actualGuess));
+                        } catch (Exception e){
+                            e.getMessage();
+                        }
+                    } else {
+                        this.event.getChannel().sendMessage(messageSpawn + this.actualGuess.getAvatarUrl().toString());
                     }
+
                 }
                 this.nbMessage = 0;
 
@@ -157,7 +161,7 @@ public class ThreadJavacord1 extends Thread {
         }
 
         ImageIO.write(image, "png", filepdpi);
-        this.event.getChannel().sendMessage(filepdpi);
+        //this.event.getChannel().sendMessage(filepdpi);
 
         return filepdpi;
     }
