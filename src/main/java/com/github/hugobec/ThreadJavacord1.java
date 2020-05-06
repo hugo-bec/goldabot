@@ -27,13 +27,9 @@ import java.util.stream.Stream;
 
 /**A Faire :
  *
- * User EX méga rare:
- * - taux de drop 10 fois inferieur que son user normal
- * - image couleur inversé
  *
  * Système d'échange
  *
- * sauvegarder Ex
  *
  * */
 
@@ -166,12 +162,12 @@ public class ThreadJavacord1 extends Thread {
     }
 
     private File getImageOriginale(MembreCollectable m) throws Exception{
-        File filepdpi = new File("..\\fichiers_goldabot\\pdporiginale1.png");
+        File filepdp = new File("..\\fichiers_goldabot\\pdporiginale1.png");
         URL input = m.getAvatarUrl();
         BufferedImage image = ImageIO.read(input);
-        ImageIO.write(image, "png", filepdpi);
+        ImageIO.write(image, "png", filepdp);
 
-        return filepdpi;
+        return filepdp;
     }
 
     private MembreCollectable dropMembreCollectable(){
