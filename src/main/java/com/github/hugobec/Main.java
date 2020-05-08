@@ -72,61 +72,10 @@ public class Main {
                 stopperThread(event);
             }
 
-
             else {
                 ThreadJavacord1 thj = getThreadLance(event.getServer().get().getId());
                 if (thj != null) {
-                    if (tabRequete[0].equalsIgnoreCase("capture")) {
-                        thj.eventCapture(event.getMessageContent(), event);
-                    }
-                    else if (tabRequete[0].equalsIgnoreCase("inventaire")) {
-                        thj.eventInventaire(event);
-                    }
-                    else if (tabRequete[0].equalsIgnoreCase("sauvegarder")) {
-                        thj.eventSauvegarder(event);
-                    }
-                    else if (tabRequete[0].equalsIgnoreCase("changer")) {
-                        if (event.getMessageAuthor().isServerAdmin()) {
-                            if (tabRequete.length == 3) {
-                                if (tabRequete[1].equalsIgnoreCase("tauxex")) {
-                                    double taux = Double.parseDouble(tabRequete[2])
-                                    if (taux > 0 && taux < 1) {
-                                        thj.setTauxEx(taux);
-                                    } else {
-                                        event.getChannel().sendMessage("Erreur: Le taux doit être compris entre 0 et 1.");
-                                    }
-                                    event.getChannel().sendMessage("Taux d'apparition Ex change !");
-
-                                } else if (tabRequete[1].equalsIgnoreCase("messageactif")) {
-                                    thj.setNiveauActivite(Integer.parseInt(tabRequete[2]));
-                                    event.getChannel().sendMessage("Nombre de message minimum pour considérer une activite change !");
-
-                                } else {
-                                    event.getChannel().sendMessage("Erreur: \"" + tabRequete[1] + "\" inconnu.");
-                                }
-                            } else if (tabRequete.length == 4) {
-                                if (tabRequete[1].equalsIgnoreCase("intervalle")) {
-                                    int tempsMin = Integer.parseInt(tabRequete[2]);
-                                    int tempsMax = Integer.parseInt(tabRequete[3]);
-                                    if (tempsMin <= tempsMax) {
-                                        thj.setIntervalleTemps(tempsMin, tempsMax);
-                                        event.getChannel().sendMessage("Intervalle entre les apparitions change !");
-                                    } else {
-                                        event.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax.");
-                                    }
-                                }
-                            } else {
-                                event.getChannel().sendMessage("Veuillez donner le nom du paramètre et la/les variable(s) associée(s).");
-                            }
-                        } else {
-                            event.getChannel().sendMessage("Vous devez être administrateur pour changer les paramètres.");
-                        }
-                    }
-                    else if(tabRequete[0].equalsIgnoreCase("echanger")){
-
-                    }
-                    
-                    thj.incrementerNbMessage();
+                    thj.gestionEvent(event);
                 }
             }
 

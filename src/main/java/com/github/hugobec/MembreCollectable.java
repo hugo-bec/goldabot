@@ -1,4 +1,5 @@
 package com.github.hugobec;
+import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.entity.channel.Channel;
 
@@ -31,8 +32,11 @@ public class MembreCollectable {
         return isEX;
     }
 
-    public String getName(){
+    public String getNomOriginal(){
         return this.membre.getName();
+    }
+    public String getNomServeur(Server serveur){
+        return this.membre.getNickname(serveur).get();
     }
     public String getId(){
         return this.membre.getIdAsString();
@@ -59,7 +63,7 @@ public class MembreCollectable {
     }
 
 
-    public String getInventaireToString(){
+    public String getInventaireToString(boolean nomOriginaux, Server serveur){
         String stringInventaire = ">>> ";
         int i = 0;
         if (this.getInventaire().isEmpty()){
@@ -67,7 +71,12 @@ public class MembreCollectable {
         } else {
             stringInventaire += this.membre.getMentionTag() + " voici votre inventaire :";
             for (MembreCollectable m: this.inventaire) {
-                stringInventaire += "\n" + i + " | " + m.membre.getName();
+                if (nomOriginaux) {
+                    stringInventaire += "\n" + i + " | " + m.membre.getName();
+                } else {
+                    stringInventaire += "\n" + i + " | " + m.membre.getNickname(serveur).get();
+                }
+
                 if (m.isEX()) {
                     stringInventaire += " **EX**";
                 }

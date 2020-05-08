@@ -27,8 +27,13 @@ import java.util.stream.Stream;
 
 /**A Faire :
  *
- *
  * Système d'échange
+ *
+ * changer nom original / nom du serveur
+ *
+ * Faire une commande help pour admin et non admin
+ *
+ * commande pour reset la mémoire (?)
  *
  *
  * */
@@ -40,6 +45,7 @@ public class ThreadJavacord1 extends Thread {
     private String nomFichierSave;
     private int tempsMin, tempsMax;
     private double tauxEx;
+    private boolean nomOriginaux;
     private int niveauActivite;
     private boolean demandeStop;
 
@@ -55,6 +61,7 @@ public class ThreadJavacord1 extends Thread {
         this.tempsMin = tempsMin;
         this.tempsMax = tempsMax;
         this.tauxEx = 0.1;
+        this.nomOriginaux = true;
         this.niveauActivite = niveauActivite;
         this.nomFichierSave = "..\\fichiers_goldabot\\saves\\save_" + this.getServeur().getName()+ "_" + this.getServeur().getId();
         this.demandeStop = false;
@@ -100,12 +107,14 @@ public class ThreadJavacord1 extends Thread {
 
                 if (this.nbMessage >= this.niveauActivite) { // && this.actualGuess == null) {
                     if (this.actualGuess != null){
-                        this.event.getChannel().sendMessage("L'utilisateur s'est enfui !");
+                        this.event.getChannel().sendMessage("Le membre s'est enfui !");
                     }
                     this.actualGuess = dropMembreCollectable();
                     this.nbTentatives = randInt(1, 4);
-                    String messageSpawn = ">>> Un nouveau membre apparait !" + "\n"
-                        + this.actualGuess.getName() + "\n"
+                    String messageSpawn = ">>> Un membre ";
+                    if (this.actualGuess.isEX()) { messageSpawn += "**EX** "; }
+                    messageSpawn += "vient d'apparaitre !" + "\n"
+                        //+ this.actualGuess.getName() + "\n"
                         + "drop: " + this.actualGuess.getTauxDrop() + "\n"
                         + "nbTentatives: " + this.nbTentatives + "\n";
 
@@ -187,33 +196,118 @@ public class ThreadJavacord1 extends Thread {
         this.niveauActivite = niveauActivite;
     }
 
-    public void setIntervalleTemps(int tempsMin, int tempsMax) {
-        this.tempsMin = tempsMin;
-        this.tempsMax = tempsMax;
-    }
-
-    public void setTauxEx(double taux){
-        this.tauxEx = taux;
-    }
-
     public void setDemandeStop(boolean b){
         this.demandeStop = b;
     }
 
 
-
 // EVENT
 
-    public void eventCapture(String requete, MessageCreateEvent eventReq){
+    public void gestionEvent(MessageCreateEvent eventReq) {
+        String[] tabRequete = stringToArray(eventReq.getMessageContent());
+
+        if (tabRequete[0].equalsIgnoreCase("capture")) {
+            eventCapture(eventReq);
+        }
+        else if (tabRequete[0].equalsIgnoreCase("inventaire")) {
+            eventInventaire(eventReq);
+        }
+        else if (tabRequete[0].equalsIgnoreCase("sauvegarder")) {
+            eventSauvegarder(eventReq);
+        }
+        else if (tabRequete[0].equalsIgnoreCase("changer")) {
+            if (eventReq.getMessageAuthor().isServerAdmin()) {
+                if (tabRequete.length >= 3) {
+                    if (tabRequete[1].equalsIgnoreCase("tauxex")) {
+                        try {
+                            double taux = Double.parseDouble(tabRequete[2]);
+                            if (taux > 0 && taux < 1) {
+                                this.tauxEx = taux;
+                                eventReq.getChannel().sendMessage("Taux d'apparition Ex change à " + taux + " !");
+                            } else {
+                                eventReq.getChannel().sendMessage("Erreur: Le taux doit être compris entre 0 et 1.");
+                            }
+                        } catch (NumberFormatException nfe) {
+                            nfe.getMessage();
+                            eventReq.getChannel().sendMessage(
+                                    "Erreur: Veuillez spécifier un nombre.");
+                        }
+
+                    } else if (tabRequete[1].equalsIgnoreCase("messageactif")) {
+                        try {
+                            int nbMessageActif = Integer.parseInt(tabRequete[2]);
+                            setNiveauActivite(nbMessageActif);
+                            eventReq.getChannel().sendMessage(
+                                    "Nombre de message minimum pour considérer une activite change à " + nbMessageActif + " !");
+                        } catch (NumberFormatException nfe) {
+                            nfe.getMessage();
+                            eventReq.getChannel().sendMessage(
+                                    "Erreur: Veuillez spécifier un entier.");
+                        }
+
+                    } else if (tabRequete[1].equalsIgnoreCase("nomoriginal")) {
+                        if (tabRequete[2].equalsIgnoreCase("vrai")) {
+                            this.nomOriginaux = true;
+                            eventReq.getChannel().sendMessage("Le bot est maintenant en mode \"pseudo original\".");
+                        } else if (tabRequete[2].equalsIgnoreCase("faux")) {
+                            this.nomOriginaux = false;
+                            eventReq.getChannel().sendMessage("Le bot est maintenant en mode \"pseudo du serveur\".");
+                        } else {
+                            eventReq.getChannel().sendMessage("Erreur: Veuillez choisir entre \'vrai\' ou \'faux\'.");
+                        }
+                    }
+
+                    else if (tabRequete[1].equalsIgnoreCase("intervalle")) {
+                        if (tabRequete.length >= 4) {
+                            try {
+                                int ptempsMin = Integer.parseInt(tabRequete[2]);
+                                int ptempsMax = Integer.parseInt(tabRequete[3]);
+                                if (ptempsMin <= ptempsMax) {
+                                    this.tempsMin = ptempsMin;
+                                    this.tempsMax = ptempsMax;
+                                    eventReq.getChannel().sendMessage(
+                                            "Intervalle entre les apparitions change " + this.tempsMin + " et " + this.tempsMax + " !");
+                                } else {
+                                    eventReq.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax.");
+                                }
+                            } catch (NumberFormatException nfe) {
+                                nfe.getMessage();
+                                eventReq.getChannel().sendMessage(
+                                        "Erreur: Veuillez spécifier deux entiers.");
+                            }
+
+                        } else { eventReq.getChannel().sendMessage("Erreur: Vous devez spécifier deux entiers."); }
+                    }
+
+                    else { eventReq.getChannel().sendMessage("Erreur: \"" + tabRequete[1] + "\" inconnu."); }
+
+                } else { eventReq.getChannel().sendMessage("Veuillez donner le nom du paramètre et la/les variable(s) associée(s)."); }
+
+            } else { eventReq.getChannel().sendMessage("Vous devez être administrateur pour changer les paramètres."); }
+        }
+        else if (tabRequete[0].equalsIgnoreCase("echanger")){
+
+        }
+
+        this.nbMessage++;
+    }
+
+    private void eventCapture(MessageCreateEvent eventReq){
         if (this.actualGuess != null) {
-            String[] tabRequete = stringToArray(requete);
+            String[] tabRequete = stringToArray(eventReq.getMessageContent());
             if (tabRequete.length > 1) {
-                String contenuReq = requete.substring("capture ".length());
+                String contenuReq = eventReq.getMessageContent().substring("capture ".length());
+                String nomCorrect;
+                if (this.nomOriginaux) {
+                    nomCorrect = this.actualGuess.getNomOriginal();
+                } else {
+                    nomCorrect = this.actualGuess.getNomServeur(eventReq.getServer().get());
+                }
 
-                System.out.println(this.actualGuess.getName());
-                System.out.println(contenuReq);
+                //System.out.println(this.actualGuess.getName());
+                //System.out.println(contenuReq);
 
-                if (contenuReq.equalsIgnoreCase(this.actualGuess.getName())) {
+                if (contenuReq.equalsIgnoreCase(nomCorrect)) {
                     if (Math.random() < this.actualGuess.getTauxDrop()) {
                         eventReq.getChannel().sendMessage("Utilisateur capture !");
 
@@ -248,14 +342,14 @@ public class ThreadJavacord1 extends Thread {
     }
 
 
-    public void eventInventaire(MessageCreateEvent eventReq){
+    private void eventInventaire(MessageCreateEvent eventReq){
         MembreCollectable mAuteur = getMembreById(eventReq.getMessageAuthor().getIdAsString());
 
-        eventReq.getChannel().sendMessage(mAuteur.getInventaireToString());
+        eventReq.getChannel().sendMessage(mAuteur.getInventaireToString(this.nomOriginaux, eventReq.getServer().get()));
     }
 
 
-    public void eventSauvegarder(MessageCreateEvent eventReq){
+    private void eventSauvegarder(MessageCreateEvent eventReq){
         try {
             creerFichierSave();
             eventReq.getChannel().sendMessage("Sauvegarde faite !");
@@ -265,7 +359,6 @@ public class ThreadJavacord1 extends Thread {
         }
     }
 
-    public void incrementerNbMessage(){ this.nbMessage++; }
 
 // INITIALISATION
 
@@ -323,7 +416,6 @@ public class ThreadJavacord1 extends Thread {
                 if (tabs.length > 1) {
                     for (int i=1; i<tabs.length; i++) {
                         if (tabs[i].charAt(0) == '+') {
-                            System.out.println("Ex trouvé");
                             MembreCollectable minv0 = getMembreById(tabs[i].substring("+".length()));
                             if (minv0 != null) {
                                 minv = new MembreCollectable(minv0);
