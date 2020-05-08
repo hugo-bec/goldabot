@@ -30,10 +30,12 @@ import java.util.stream.Stream;
  * Système d'échange
  *
  * Faire une commande help pour admin et non admin
+ * commande pour voir l'état des configs
+ *
+ * fonction resettant les demandes (echange + resetmemoire)
  *
  * commande pour reset la mémoire (?)
  *
- * ajouter un préfix aux commandes
  *
  *
  * */
@@ -220,6 +222,7 @@ public class ThreadJavacord1 extends Thread {
         }
         else if (tabRequete[0].equalsIgnoreCase(this.prefix+"sauvegarder")) {
             eventSauvegarder(eventReq);
+            eventReq.getChannel().sendMessage("Sauvegarde faite !");
         }
         else if (tabRequete[0].equalsIgnoreCase(this.prefix+"changer")) {
             if (eventReq.getMessageAuthor().isServerAdmin()) {
@@ -292,18 +295,18 @@ public class ThreadJavacord1 extends Thread {
             } else { eventReq.getChannel().sendMessage("Vous devez être administrateur pour changer les paramètres."); }
         }
 
+        else if (tabRequete[0].equalsIgnoreCase(this.prefix+"resetmemoire")){
+            if (eventReq.getMessageAuthor().isServerAdmin()) {
+                eventResetMemoire(eventReq);
+                System.out.println("resetmemoire event");
+            } else { eventReq.getChannel().sendMessage("Vous devez être administrateur pour changer les paramètres."); }
+        }
+
         else if (tabRequete[0].equalsIgnoreCase(this.prefix+"echanger")){
 
         }
 
-        else if (tabRequete[0].equalsIgnoreCase(this.prefix+"resetmemoire")){
-            if (!demandeReset) {
-                this.demandeReset = true;
-                eventReq.getChannel().sendMessage("Etes-vous sûr(e) de vouloir effacer la mémoire ?????\n"
-                + "En effaçant la mémoire tout le monde perdra son inventaire et les taux de drop des membres se réinitialiseront.\n");
-                // A FINIR
-            } // A FINIR
-        }
+
 
         this.nbMessage++;
     }
@@ -368,7 +371,6 @@ public class ThreadJavacord1 extends Thread {
     private void eventSauvegarder(MessageCreateEvent eventReq){
         try {
             creerFichierSave();
-            eventReq.getChannel().sendMessage("Sauvegarde faite !");
         } catch (IOException ioe) {
             eventReq.getChannel().sendMessage("thread: Erreur lors de la creation du fichier de sauvegarde.");
             ioe.getMessage();
@@ -376,14 +378,39 @@ public class ThreadJavacord1 extends Thread {
     }
 
 
-    private void eventResetMemoire(){
-
+    private void eventResetMemoire(MessageCreateEvent eventReq){
+        String[] tabRequete = eventReq.getMessageContent().split(" ");
+        if (!demandeReset) {
+            this.demandeReset = true;
+            eventReq.getChannel().sendMessage(">>> Etes-vous sûr(e) de vouloir effacer la mémoire ?????\n"
+                    + "En effaçant la mémoire tout le monde perdra son inventaire et les taux de drop des membres se réinitialiseront.\n"
+                    + "Pour annuler la demande de reset memoire faites \'"+this.prefix+"resetmemoire annuler\',\n"
+                    + "Pour confirmer la demande de reset memoire faites \'"+this.prefix+"resetmemoire confirmer\'.\n"
+                    + "Si vous ne faites rien la demande sera automatiquement annulé après un petit moment.");
+        } else {
+            if (tabRequete.length == 2) {
+                if (tabRequete[1].equalsIgnoreCase("annuler")) {
+                    this.demandeReset = false;
+                    eventReq.getChannel().sendMessage("La demande de reset mémoire a été annuler.");
+                } else if (tabRequete[1].equalsIgnoreCase("confirmer")) {
+                    initListeMembre();
+                    eventSauvegarder(eventReq);
+                    this.demandeReset = false;
+                    eventReq.getChannel().sendMessage("Mémoire réinitialisé !");
+                } else {
+                    eventReq.getChannel().sendMessage("Erreur: Veuillez spécifier \'confirmer\' ou \'annuler\'.");
+                }
+            } else {
+                eventReq.getChannel().sendMessage("Erreur: Veuillez spécifier \'confirmer\' ou \'annuler\'.");
+            }
+        }
     }
 
 
 // INITIALISATION
 
     private void initListeMembre(){
+        this.listMembre = new ArrayList<>();
         for (User u: this.event.getServer().get().getMembers()) {
             this.listMembre.add(new MembreCollectable(u, false));
         }

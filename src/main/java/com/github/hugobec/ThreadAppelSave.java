@@ -29,6 +29,7 @@ public class ThreadAppelSave extends Thread {
             try {
                 for (ThreadJavacord1 th : this.listThread) {
                     th.sauvegarder();
+                    // reset demande
                     //System.out.println(th.getState());
                 }
             } catch (IOException ioe) {
