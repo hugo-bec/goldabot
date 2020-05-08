@@ -29,8 +29,6 @@ import java.util.stream.Stream;
  *
  * Système d'échange
  *
- * changer nom original / nom du serveur
- *
  * Faire une commande help pour admin et non admin
  *
  * commande pour reset la mémoire (?)
@@ -204,7 +202,7 @@ public class ThreadJavacord1 extends Thread {
 // EVENT
 
     public void gestionEvent(MessageCreateEvent eventReq) {
-        String[] tabRequete = stringToArray(eventReq.getMessageContent());
+        String[] tabRequete = eventReq.getMessageContent().split(" ");
 
         if (tabRequete[0].equalsIgnoreCase("capture")) {
             eventCapture(eventReq);
@@ -285,7 +283,12 @@ public class ThreadJavacord1 extends Thread {
 
             } else { eventReq.getChannel().sendMessage("Vous devez être administrateur pour changer les paramètres."); }
         }
+
         else if (tabRequete[0].equalsIgnoreCase("echanger")){
+
+        }
+
+        else if (tabRequete[0].equalsIgnoreCase("resetmemoire")){
 
         }
 
@@ -294,7 +297,7 @@ public class ThreadJavacord1 extends Thread {
 
     private void eventCapture(MessageCreateEvent eventReq){
         if (this.actualGuess != null) {
-            String[] tabRequete = stringToArray(eventReq.getMessageContent());
+            String[] tabRequete = eventReq.getMessageContent().split(" ");
             if (tabRequete.length > 1) {
                 String contenuReq = eventReq.getMessageContent().substring("capture ".length());
                 String nomCorrect;
@@ -395,7 +398,7 @@ public class ThreadJavacord1 extends Thread {
         this.fichierSave.seek(0);
         String ligned = this.fichierSave.readLine();
         if (ligned != null) {
-            String[] tabd = this.stringToArray(ligned);
+            String[] tabd = ligned.split(" ");
 
             for (int i=0; i<tabd.length; i++) {
                 String[] drop = tabd[i].split(":");
@@ -411,7 +414,7 @@ public class ThreadJavacord1 extends Thread {
         this.fichierSave.readLine();    //on saute la première ligne de drop
         String ligne = this.fichierSave.readLine();
         while (ligne != null) {
-            String[] tabs = stringToArray(ligne);
+            String[] tabs = ligne.split(" ");
             if (tabs[0].equalsIgnoreCase(m.getId())) {
                 if (tabs.length > 1) {
                     for (int i=1; i<tabs.length; i++) {
@@ -461,11 +464,6 @@ public class ThreadJavacord1 extends Thread {
             }
         }
         return null;
-    }
-
-    private String[] stringToArray(String s){
-        String[] words = s.split(" ");
-        return words;
     }
 
     private int randInt(int min, int max) {
