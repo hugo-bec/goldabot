@@ -30,11 +30,9 @@ import java.util.stream.Stream;
  * Système d'échange
  *
  * Faire une commande help pour admin et non admin
- * commande pour voir l'état des configs
  *
  * fonction resettant les demandes (echange + resetmemoire)
  *
- * commande pour reset la mémoire (?)
  *
  *
  *
@@ -302,6 +300,12 @@ public class ThreadJavacord1 extends Thread {
             } else { eventReq.getChannel().sendMessage("Vous devez être administrateur pour changer les paramètres."); }
         }
 
+        else if (tabRequete[0].equalsIgnoreCase(this.prefix+"voirconfig")){
+            if (eventReq.getMessageAuthor().isServerAdmin()) {
+                eventVoirConfig(eventReq);
+            } else { eventReq.getChannel().sendMessage("Vous devez être administrateur pour changer les paramètres."); }
+        }
+
         else if (tabRequete[0].equalsIgnoreCase(this.prefix+"echanger")){
 
         }
@@ -404,6 +408,16 @@ public class ThreadJavacord1 extends Thread {
                 eventReq.getChannel().sendMessage("Erreur: Veuillez spécifier \'confirmer\' ou \'annuler\'.");
             }
         }
+    }
+
+
+    public void eventVoirConfig(MessageCreateEvent eventReq){
+        eventReq.getChannel().sendMessage(">>> "
+                + "Intervalle de spawn (intervalle): entre " + this.tempsMin + " et " + this.tempsMax + " minutes"
+                + "\nTaux de spawn Ex (tauxex): " + this.tauxEx
+                + "\nMode nomOriginaux (nomoriginal): " + this.nomOriginaux
+                + "\nNombre de message minimum pour considérer une activite (messageactif): " + this.niveauActivite
+                + "\nDemande resetmemoire (demandereset): " + this.demandeReset);
     }
 
 
