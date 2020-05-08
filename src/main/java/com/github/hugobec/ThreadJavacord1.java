@@ -33,6 +33,8 @@ import java.util.stream.Stream;
  *
  * commande pour reset la mémoire (?)
  *
+ * ajouter un préfix aux commandes
+ *
  *
  * */
 
@@ -45,7 +47,10 @@ public class ThreadJavacord1 extends Thread {
     private double tauxEx;
     private boolean nomOriginaux;
     private int niveauActivite;
+    private String prefix;
+
     private boolean demandeStop;
+    private boolean demandeReset;
 
     private List<MembreCollectable> listMembre;
     private MembreCollectable actualGuess;
@@ -54,15 +59,18 @@ public class ThreadJavacord1 extends Thread {
     private int nbTentatives;
 
 
-    public ThreadJavacord1(MessageCreateEvent event, int niveauActivite, int tempsMin, int tempsMax) {
+    public ThreadJavacord1(MessageCreateEvent event, String prefix, int niveauActivite, int tempsMin, int tempsMax) {
         this.event = event;
         this.tempsMin = tempsMin;
         this.tempsMax = tempsMax;
+        this.niveauActivite = niveauActivite;
         this.tauxEx = 0.1;
         this.nomOriginaux = true;
-        this.niveauActivite = niveauActivite;
         this.nomFichierSave = "..\\fichiers_goldabot\\saves\\save_" + this.getServeur().getName()+ "_" + this.getServeur().getId();
+        this.prefix = prefix;
+
         this.demandeStop = false;
+        this.demandeReset = false;
         this.listMembre = new ArrayList<>();
         initListeMembre();
 
@@ -204,16 +212,16 @@ public class ThreadJavacord1 extends Thread {
     public void gestionEvent(MessageCreateEvent eventReq) {
         String[] tabRequete = eventReq.getMessageContent().split(" ");
 
-        if (tabRequete[0].equalsIgnoreCase("capture")) {
+        if (tabRequete[0].equalsIgnoreCase(this.prefix+"capture")) {
             eventCapture(eventReq);
         }
-        else if (tabRequete[0].equalsIgnoreCase("inventaire")) {
+        else if (tabRequete[0].equalsIgnoreCase(this.prefix+"inventaire")) {
             eventInventaire(eventReq);
         }
-        else if (tabRequete[0].equalsIgnoreCase("sauvegarder")) {
+        else if (tabRequete[0].equalsIgnoreCase(this.prefix+"sauvegarder")) {
             eventSauvegarder(eventReq);
         }
-        else if (tabRequete[0].equalsIgnoreCase("changer")) {
+        else if (tabRequete[0].equalsIgnoreCase(this.prefix+"changer")) {
             if (eventReq.getMessageAuthor().isServerAdmin()) {
                 if (tabRequete.length >= 3) {
                     if (tabRequete[1].equalsIgnoreCase("tauxex")) {
@@ -284,12 +292,17 @@ public class ThreadJavacord1 extends Thread {
             } else { eventReq.getChannel().sendMessage("Vous devez être administrateur pour changer les paramètres."); }
         }
 
-        else if (tabRequete[0].equalsIgnoreCase("echanger")){
+        else if (tabRequete[0].equalsIgnoreCase(this.prefix+"echanger")){
 
         }
 
-        else if (tabRequete[0].equalsIgnoreCase("resetmemoire")){
-
+        else if (tabRequete[0].equalsIgnoreCase(this.prefix+"resetmemoire")){
+            if (!demandeReset) {
+                this.demandeReset = true;
+                eventReq.getChannel().sendMessage("Etes-vous sûr(e) de vouloir effacer la mémoire ?????\n"
+                + "En effaçant la mémoire tout le monde perdra son inventaire et les taux de drop des membres se réinitialiseront.\n");
+                // A FINIR
+            } // A FINIR
         }
 
         this.nbMessage++;
@@ -360,6 +373,11 @@ public class ThreadJavacord1 extends Thread {
             eventReq.getChannel().sendMessage("thread: Erreur lors de la creation du fichier de sauvegarde.");
             ioe.getMessage();
         }
+    }
+
+
+    private void eventResetMemoire(){
+
     }
 
 
@@ -438,8 +456,7 @@ public class ThreadJavacord1 extends Thread {
 
 
     private void creerFichierSave() throws IOException {
-        File f = new File(nomFichierSave);
-        f.delete();
+        deleteFichierSave();
 
         this.fichierSave = new RandomAccessFile(nomFichierSave, "rw");
         this.ecrireTauxDrop();
@@ -451,6 +468,11 @@ public class ThreadJavacord1 extends Thread {
 
     public void sauvegarder() throws IOException {
         creerFichierSave();
+    }
+
+    private void deleteFichierSave(){
+        File f = new File(nomFichierSave);
+        f.delete();
     }
 
 

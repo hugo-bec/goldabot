@@ -18,8 +18,8 @@ import java.util.Optional;
 
 public class Main {
 
-    static ThreadJavacord1 thread1 = null;
     static List<ThreadJavacord1> listThread = new ArrayList<>();
+    static String prefix = "pd.";   //ne doit pas contenir d'espace
 
     public static void main(String[] args) {
         String token = "";
@@ -38,11 +38,11 @@ public class Main {
         api.addMessageCreateListener(event -> {
             String[] tabRequete = stringToArray(event.getMessageContent());
 
-            if (tabRequete[0].equalsIgnoreCase("ping")) {
-                event.getChannel().sendMessage("Pong!");
+            if (tabRequete[0].equalsIgnoreCase(prefix+"ping")) {
+                event.getChannel().sendMessage(prefix+"Pong!");
             }
 
-            else if (tabRequete[0].equalsIgnoreCase("lancer")) {
+            else if (tabRequete[0].equalsIgnoreCase(prefix+"lancer")) {
                 if (event.getMessageAuthor().isServerAdmin()) {
                     if (tabRequete.length == 4) {
                         try {
@@ -68,7 +68,7 @@ public class Main {
                 }
             }
 
-            else if (tabRequete[0].equalsIgnoreCase("stop")) {
+            else if (tabRequete[0].equalsIgnoreCase(prefix+"stop")) {
                 stopperThread(event);
             }
 
@@ -94,7 +94,7 @@ public class Main {
             }
         }
         if (!threadDejaLance) {
-            ThreadJavacord1 t1 = new ThreadJavacord1(event, nbactif, tempsMin, tempsMax);
+            ThreadJavacord1 t1 = new ThreadJavacord1(event, prefix, nbactif, tempsMin, tempsMax);
             t1.start();
             listThread.add(t1);
             event.getChannel().sendMessage("main: thread lance");
