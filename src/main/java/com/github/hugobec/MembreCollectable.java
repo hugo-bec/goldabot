@@ -32,12 +32,10 @@ public class MembreCollectable {
         return isEX;
     }
 
-    public String getNomOriginal(){
-        return this.membre.getName();
+    public String getNom(boolean nomOriginal, Server serveur){
+        return nomOriginal? this.membre.getName() : this.membre.getNickname(serveur).get();
     }
-    public String getNomServeur(Server serveur){
-        return this.membre.getNickname(serveur).get();
-    }
+
     public String getId(){
         return this.membre.getIdAsString();
     }
@@ -71,12 +69,7 @@ public class MembreCollectable {
         } else {
             stringInventaire += this.membre.getMentionTag() + " voici votre inventaire :";
             for (MembreCollectable m: this.inventaire) {
-                if (nomOriginaux) {
-                    stringInventaire += "\n" + i + " | " + m.membre.getName();
-                } else {
-                    stringInventaire += "\n" + i + " | " + m.membre.getNickname(serveur).get();
-                }
-
+                stringInventaire += "\n" + i + " | " + m.getNom(nomOriginaux, serveur);
                 if (m.isEX()) {
                     stringInventaire += " **EX**";
                 }

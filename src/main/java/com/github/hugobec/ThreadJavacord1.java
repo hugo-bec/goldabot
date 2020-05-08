@@ -320,17 +320,11 @@ public class ThreadJavacord1 extends Thread {
             String[] tabRequete = eventReq.getMessageContent().split(" ");
             if (tabRequete.length > 1) {
                 String contenuReq = eventReq.getMessageContent().substring("capture ".length());
-                String nomCorrect;
-                if (this.nomOriginaux) {
-                    nomCorrect = this.actualGuess.getNomOriginal();
-                } else {
-                    nomCorrect = this.actualGuess.getNomServeur(eventReq.getServer().get());
-                }
 
                 //System.out.println(this.actualGuess.getName());
                 //System.out.println(contenuReq);
 
-                if (contenuReq.equalsIgnoreCase(nomCorrect)) {
+                if (contenuReq.equalsIgnoreCase(this.actualGuess.getNom(this.nomOriginaux, eventReq.getServer().get()))) {
                     if (Math.random() < this.actualGuess.getTauxDrop()) {
                         eventReq.getChannel().sendMessage("Utilisateur capture !");
 
