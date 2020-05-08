@@ -63,13 +63,13 @@ public class Main {
                                 + "Un pour le nombre de message correspondant à une activité minimum,\n"
                                 + "2 autres entiers pour spécifier l'intervale de temps entre les apparitions.");
                     }
-                } else {
-                    event.getChannel().sendMessage("Vous devez être administrateur pour lancer.");
-                }
+                } else { event.getChannel().sendMessage("Vous devez être administrateur pour lancer le thread."); }
             }
 
             else if (tabRequete[0].equalsIgnoreCase(prefix+"stop")) {
-                stopperThread(event);
+                if (event.getMessageAuthor().isServerAdmin()) {
+                    stopperThread(event);
+                } else { event.getChannel().sendMessage("Vous devez être administrateur pour stopper le thread."); }
             }
 
             else {

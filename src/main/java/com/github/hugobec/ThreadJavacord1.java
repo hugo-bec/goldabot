@@ -54,6 +54,7 @@ public class ThreadJavacord1 extends Thread {
 
     private List<MembreCollectable> listMembre;
     private MembreCollectable actualGuess;
+    private Map<MembreCollectable, Integer> mapEchange;
 
     private int nbMessage;
     private int nbTentatives;
@@ -73,6 +74,7 @@ public class ThreadJavacord1 extends Thread {
         this.demandeReset = false;
         this.listMembre = new ArrayList<>();
         initListeMembre();
+        this.mapEchange = new HashMap<>();
 
         try {
             File f = new File(nomFichierSave);
@@ -307,7 +309,22 @@ public class ThreadJavacord1 extends Thread {
         }
 
         else if (tabRequete[0].equalsIgnoreCase(this.prefix+"echanger")){
-
+            if (tabRequete.length == 2) {
+                try {
+                    int idMembre = Integer.parseInt(tabRequete[1]);
+                    if (idMembre >= 0
+                    && idMembre < getMembreById(event.getMessageAuthor().getIdAsString()).getInventaire().size()) {
+                        prout
+                    } else {
+                        eventReq.getChannel().sendMessage("Erreur: le numéro doit correspondre à un id de votre inventaire.");
+                    }
+                } catch (NumberFormatException nfe){
+                    nfe.getMessage();
+                    eventReq.getChannel().sendMessage("Erreur: Vous devez spécifier un numéro correspondant à votre inventaire.");
+                }
+            } else {
+                eventReq.getChannel().sendMessage("Erreur: Vous devez spécifier un numéro correspondant à votre inventaire.");
+            }
         }
 
 
@@ -321,16 +338,13 @@ public class ThreadJavacord1 extends Thread {
             if (tabRequete.length > 1) {
                 String contenuReq = eventReq.getMessageContent().substring("capture ".length());
 
-                //System.out.println(this.actualGuess.getName());
-                //System.out.println(contenuReq);
-
                 if (contenuReq.equalsIgnoreCase(this.actualGuess.getNom(this.nomOriginaux, eventReq.getServer().get()))) {
                     if (Math.random() < this.actualGuess.getTauxDrop()) {
-                        eventReq.getChannel().sendMessage("Utilisateur capture !");
+                        eventReq.getChannel().sendMessage("Utilisateur capturé !");
 
                         getMembreById(eventReq.getMessageAuthor().getIdAsString()).ajouterInventaire(this.actualGuess);
                     } else {
-                        this.event.getChannel().sendMessage("Vous n'avais pas reussi a capturer l'utilisateur !");
+                        this.event.getChannel().sendMessage("Vous n'avais pas reussi à capturer l'utilisateur !");
                         this.nbTentatives--;
                         if (this.nbTentatives <= 0) {
                             this.actualGuess = null;
@@ -354,7 +368,7 @@ public class ThreadJavacord1 extends Thread {
             }
         } else {
             eventReq.getChannel().sendMessage(
-                    "L'utilisateur a deja ete capture ! Attendez qu'un nouvel utilisateur apparaisse.");
+                    "L'utilisateur a déjà été capturé ! Attendez qu'un nouvel utilisateur apparaisse.");
         }
     }
 
@@ -370,7 +384,7 @@ public class ThreadJavacord1 extends Thread {
         try {
             creerFichierSave();
         } catch (IOException ioe) {
-            eventReq.getChannel().sendMessage("thread: Erreur lors de la creation du fichier de sauvegarde.");
+            eventReq.getChannel().sendMessage("thread: Erreur lors de la création du fichier de sauvegarde.");
             ioe.getMessage();
         }
     }
@@ -410,7 +424,7 @@ public class ThreadJavacord1 extends Thread {
                 + "Intervalle de spawn (intervalle): entre " + this.tempsMin + " et " + this.tempsMax + " minutes"
                 + "\nTaux de spawn Ex (tauxex): " + this.tauxEx
                 + "\nMode nomOriginaux (nomoriginal): " + this.nomOriginaux
-                + "\nNombre de message minimum pour considérer une activite (messageactif): " + this.niveauActivite
+                + "\nNombre de message minimum pour considérer une activité (messageactif): " + this.niveauActivite
                 + "\nDemande resetmemoire (demandereset): " + this.demandeReset);
     }
 
