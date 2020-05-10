@@ -33,7 +33,13 @@ public class MembreCollectable {
     }
 
     public String getNom(boolean nomOriginal, Server serveur){
-        return nomOriginal? this.membre.getName() : this.membre.getNickname(serveur).get();
+        String sreturn = "";
+        if (nomOriginal)
+            { sreturn += this.membre.getName(); }
+        else
+            { sreturn += this.membre.getNickname(serveur).get(); }
+        if (this.isEX) { sreturn += " EX"; }
+        return sreturn;
     }
 
     public String getId(){
@@ -47,6 +53,9 @@ public class MembreCollectable {
     }
     public URL getAvatarUrl(){
         return this.membre.getAvatar().getUrl();
+    }
+    public String getMentionTag(){
+        return this.membre.getMentionTag();
     }
 
     public void setTauxDrop(double tauxDrop) {
@@ -71,7 +80,7 @@ public class MembreCollectable {
             for (MembreCollectable m: this.inventaire) {
                 stringInventaire += "\n" + i + " | " + m.getNom(nomOriginaux, serveur);
                 if (m.isEX()) {
-                    stringInventaire += " **EX**";
+                    stringInventaire.replace("EX", "**EX**");
                 }
                 i++;
             }

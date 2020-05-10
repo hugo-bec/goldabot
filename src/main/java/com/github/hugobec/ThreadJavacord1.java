@@ -54,7 +54,7 @@ public class ThreadJavacord1 extends Thread {
 
     private List<MembreCollectable> listMembre;
     private MembreCollectable actualGuess;
-    private Map<MembreCollectable, Integer> mapEchange;
+    private List<PropositionEchange> propEchanges;
 
     private int nbMessage;
     private int nbTentatives;
@@ -74,7 +74,7 @@ public class ThreadJavacord1 extends Thread {
         this.demandeReset = false;
         this.listMembre = new ArrayList<>();
         initListeMembre();
-        this.mapEchange = new HashMap<>();
+        this.propEchanges = new ArrayList<>();
 
         try {
             File f = new File(nomFichierSave);
@@ -112,7 +112,7 @@ public class ThreadJavacord1 extends Thread {
                     this.event.getChannel().sendMessage("thread stoppe");
                     break;
                 }
-
+                System.out.println(this.nbMessage+" >= "+this.niveauActivite);
                 if (this.nbMessage >= this.niveauActivite) { // && this.actualGuess == null) {
                     if (this.actualGuess != null){
                         this.event.getChannel().sendMessage("Le membre s'est enfui !");
@@ -122,7 +122,7 @@ public class ThreadJavacord1 extends Thread {
                     String messageSpawn = ">>> Un membre ";
                     if (this.actualGuess.isEX()) { messageSpawn += "**EX** "; }
                     messageSpawn += "vient d'apparaitre !" + "\n"
-                        //+ this.actualGuess.getName() + "\n"
+                        + this.actualGuess.getNom(this.nomOriginaux, this.event.getServer().get()) + "\n"
                         + "drop: " + this.actualGuess.getTauxDrop() + "\n"
                         + "nbTentatives: " + this.nbTentatives + "\n";
 
@@ -196,6 +196,13 @@ public class ThreadJavacord1 extends Thread {
         return getRandomMembre();
     }
 
+    private void fairePropositionEchange(){
+        MembreCollectable m1 = this.propEchanges.get(0).getMembreAEchanger();
+        MembreCollectable m2 = this.propEchanges.get(1).getMembreAEchanger();
+        this.propEchanges.get(0).changerMembre(m2);
+        this.propEchanges.get(1).changerMembre(m1);
+    }
+
 
 
 // SETTER
@@ -209,125 +216,124 @@ public class ThreadJavacord1 extends Thread {
     }
 
 
-// EVENT
+// EVENT MESSAGE
 
     public void gestionEvent(MessageCreateEvent eventReq) {
-        String[] tabRequete = eventReq.getMessageContent().split(" ");
+        if (eventReq.getMessageContent().startsWith(this.prefix)) {
 
-        if (tabRequete[0].equalsIgnoreCase(this.prefix+"capture")) {
-            eventCapture(eventReq);
-        }
-        else if (tabRequete[0].equalsIgnoreCase(this.prefix+"inventaire")) {
-            eventInventaire(eventReq);
-        }
-        else if (tabRequete[0].equalsIgnoreCase(this.prefix+"sauvegarder")) {
-            eventSauvegarder(eventReq);
-            eventReq.getChannel().sendMessage("Sauvegarde faite !");
-        }
-        else if (tabRequete[0].equalsIgnoreCase(this.prefix+"changer")) {
-            if (eventReq.getMessageAuthor().isServerAdmin()) {
-                if (tabRequete.length >= 3) {
-                    if (tabRequete[1].equalsIgnoreCase("tauxex")) {
-                        try {
-                            double taux = Double.parseDouble(tabRequete[2]);
-                            if (taux > 0 && taux < 1) {
-                                this.tauxEx = taux;
-                                eventReq.getChannel().sendMessage("Taux d'apparition Ex change à " + taux + " !");
-                            } else {
-                                eventReq.getChannel().sendMessage("Erreur: Le taux doit être compris entre 0 et 1.");
-                            }
-                        } catch (NumberFormatException nfe) {
-                            nfe.getMessage();
-                            eventReq.getChannel().sendMessage(
-                                    "Erreur: Veuillez spécifier un nombre.");
-                        }
+            String[] tabRequete = eventReq.getMessageContent().split(" ");
 
-                    } else if (tabRequete[1].equalsIgnoreCase("messageactif")) {
-                        try {
-                            int nbMessageActif = Integer.parseInt(tabRequete[2]);
-                            setNiveauActivite(nbMessageActif);
-                            eventReq.getChannel().sendMessage(
-                                    "Nombre de message minimum pour considérer une activite change à " + nbMessageActif + " !");
-                        } catch (NumberFormatException nfe) {
-                            nfe.getMessage();
-                            eventReq.getChannel().sendMessage(
-                                    "Erreur: Veuillez spécifier un entier.");
-                        }
+            if (tabRequete[0].equalsIgnoreCase(this.prefix + "capture")) {
+                eventCapture(eventReq);
 
-                    } else if (tabRequete[1].equalsIgnoreCase("nomoriginal")) {
-                        if (tabRequete[2].equalsIgnoreCase("vrai")) {
-                            this.nomOriginaux = true;
-                            eventReq.getChannel().sendMessage("Le bot est maintenant en mode \"pseudo original\".");
-                        } else if (tabRequete[2].equalsIgnoreCase("faux")) {
-                            this.nomOriginaux = false;
-                            eventReq.getChannel().sendMessage("Le bot est maintenant en mode \"pseudo du serveur\".");
-                        } else {
-                            eventReq.getChannel().sendMessage("Erreur: Veuillez choisir entre \'vrai\' ou \'faux\'.");
-                        }
-                    }
+            } else if (tabRequete[0].equalsIgnoreCase(this.prefix + "inventaire")) {
+                eventInventaire(eventReq);
 
-                    else if (tabRequete[1].equalsIgnoreCase("intervalle")) {
-                        if (tabRequete.length >= 4) {
+            } else if (tabRequete[0].equalsIgnoreCase(this.prefix + "sauvegarder")) {
+                eventSauvegarder(eventReq);
+                eventReq.getChannel().sendMessage("Sauvegarde faite !");
+
+            } else if (tabRequete[0].equalsIgnoreCase(this.prefix + "changer")) {
+                if (eventReq.getMessageAuthor().isServerAdmin()) {
+                    if (tabRequete.length >= 3) {
+                        if (tabRequete[1].equalsIgnoreCase("tauxex")) {
                             try {
-                                int ptempsMin = Integer.parseInt(tabRequete[2]);
-                                int ptempsMax = Integer.parseInt(tabRequete[3]);
-                                if (ptempsMin <= ptempsMax) {
-                                    this.tempsMin = ptempsMin;
-                                    this.tempsMax = ptempsMax;
-                                    eventReq.getChannel().sendMessage(
-                                            "Intervalle entre les apparitions change " + this.tempsMin + " et " + this.tempsMax + " !");
+                                double taux = Double.parseDouble(tabRequete[2]);
+                                if (taux > 0 && taux < 1) {
+                                    this.tauxEx = taux;
+                                    eventReq.getChannel().sendMessage("Taux d'apparition Ex change à " + taux + " !");
                                 } else {
-                                    eventReq.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax.");
+                                    eventReq.getChannel().sendMessage("Erreur: Le taux doit être compris entre 0 et 1.");
                                 }
                             } catch (NumberFormatException nfe) {
                                 nfe.getMessage();
                                 eventReq.getChannel().sendMessage(
-                                        "Erreur: Veuillez spécifier deux entiers.");
+                                        "Erreur: Veuillez spécifier un nombre.");
                             }
 
-                        } else { eventReq.getChannel().sendMessage("Erreur: Vous devez spécifier deux entiers."); }
-                    }
+                        } else if (tabRequete[1].equalsIgnoreCase("messageactif")) {
+                            try {
+                                int nbMessageActif = Integer.parseInt(tabRequete[2]);
+                                setNiveauActivite(nbMessageActif);
+                                eventReq.getChannel().sendMessage(
+                                        "Nombre de message minimum pour considérer une activite change à " + nbMessageActif + " !");
+                            } catch (NumberFormatException nfe) {
+                                nfe.getMessage();
+                                eventReq.getChannel().sendMessage(
+                                        "Erreur: Veuillez spécifier un entier.");
+                            }
 
-                    else { eventReq.getChannel().sendMessage("Erreur: \"" + tabRequete[1] + "\" inconnu."); }
+                        } else if (tabRequete[1].equalsIgnoreCase("nomoriginal")) {
+                            if (tabRequete[2].equalsIgnoreCase("vrai")) {
+                                this.nomOriginaux = true;
+                                eventReq.getChannel().sendMessage("Le bot est maintenant en mode \"pseudo original\".");
+                            } else if (tabRequete[2].equalsIgnoreCase("faux")) {
+                                this.nomOriginaux = false;
+                                eventReq.getChannel().sendMessage("Le bot est maintenant en mode \"pseudo du serveur\".");
+                            } else {
+                                eventReq.getChannel().sendMessage("Erreur: Veuillez choisir entre \'vrai\' ou \'faux\'.");
+                            }
+                        } else if (tabRequete[1].equalsIgnoreCase("intervalle")) {
+                            if (tabRequete.length >= 4) {
+                                try {
+                                    int ptempsMin = Integer.parseInt(tabRequete[2]);
+                                    int ptempsMax = Integer.parseInt(tabRequete[3]);
+                                    if (ptempsMin <= ptempsMax) {
+                                        this.tempsMin = ptempsMin;
+                                        this.tempsMax = ptempsMax;
+                                        eventReq.getChannel().sendMessage(
+                                                "Intervalle entre les apparitions change " + this.tempsMin + " et " + this.tempsMax + " !");
+                                    } else {
+                                        eventReq.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax.");
+                                    }
+                                } catch (NumberFormatException nfe) {
+                                    nfe.getMessage();
+                                    eventReq.getChannel().sendMessage(
+                                            "Erreur: Veuillez spécifier deux entiers.");
+                                }
 
-                } else { eventReq.getChannel().sendMessage("Veuillez donner le nom du paramètre et la/les variable(s) associée(s)."); }
+                            } else {
+                                eventReq.getChannel().sendMessage("Erreur: Vous devez spécifier deux entiers.");
+                            }
+                        } else {
+                            eventReq.getChannel().sendMessage("Erreur: \"" + tabRequete[1] + "\" inconnu.");
+                        }
 
-            } else { eventReq.getChannel().sendMessage("Vous devez être administrateur pour changer les paramètres."); }
-        }
-
-        else if (tabRequete[0].equalsIgnoreCase(this.prefix+"resetmemoire")){
-            if (eventReq.getMessageAuthor().isServerAdmin()) {
-                eventResetMemoire(eventReq);
-                System.out.println("resetmemoire event");
-            } else { eventReq.getChannel().sendMessage("Vous devez être administrateur pour changer les paramètres."); }
-        }
-
-        else if (tabRequete[0].equalsIgnoreCase(this.prefix+"voirconfig")){
-            if (eventReq.getMessageAuthor().isServerAdmin()) {
-                eventVoirConfig(eventReq);
-            } else { eventReq.getChannel().sendMessage("Vous devez être administrateur pour changer les paramètres."); }
-        }
-
-        else if (tabRequete[0].equalsIgnoreCase(this.prefix+"echanger")){
-            if (tabRequete.length == 2) {
-                try {
-                    int idMembre = Integer.parseInt(tabRequete[1]);
-                    if (idMembre >= 0
-                    && idMembre < getMembreById(event.getMessageAuthor().getIdAsString()).getInventaire().size()) {
-                        prout
                     } else {
-                        eventReq.getChannel().sendMessage("Erreur: le numéro doit correspondre à un id de votre inventaire.");
+                        eventReq.getChannel().sendMessage("Veuillez donner le nom du paramètre et la/les variable(s) associée(s).");
                     }
-                } catch (NumberFormatException nfe){
-                    nfe.getMessage();
-                    eventReq.getChannel().sendMessage("Erreur: Vous devez spécifier un numéro correspondant à votre inventaire.");
+
+                } else {
+                    eventReq.getChannel().sendMessage("Vous devez être administrateur pour changer les paramètres.");
                 }
-            } else {
-                eventReq.getChannel().sendMessage("Erreur: Vous devez spécifier un numéro correspondant à votre inventaire.");
+            } else if (tabRequete[0].equalsIgnoreCase(this.prefix + "resetmemoire")) {
+                if (eventReq.getMessageAuthor().isServerAdmin()) {
+                    eventResetMemoire(eventReq);
+                    System.out.println("resetmemoire event");
+                } else {
+                    eventReq.getChannel().sendMessage("Vous devez être administrateur pour changer les paramètres.");
+                }
+
+            } else if (tabRequete[0].equalsIgnoreCase(this.prefix + "voirconfig")) {
+                if (eventReq.getMessageAuthor().isServerAdmin()) {
+                    eventVoirConfig(eventReq);
+                } else {
+                    eventReq.getChannel().sendMessage("Vous devez être administrateur pour changer les paramètres.");
+                }
+
+            } else if (tabRequete[0].equalsIgnoreCase(this.prefix + "echange")) {
+                eventEchange(eventReq);
+
+            } else if (tabRequete[0].equalsIgnoreCase(this.prefix + "echangetest")) {
+                this.propEchanges.add(new PropositionEchange(getMembreById(event.getMessageAuthor().getIdAsString()), 1));
+                this.propEchanges.add(new PropositionEchange(getMembreById(event.getMessageAuthor().getIdAsString()), 5));
+                fairePropositionEchange();
+            }
+
+            else {
+                eventReq.getChannel().sendMessage("Erreur: `" + tabRequete[0] + "` commande inconnu.");
             }
         }
-
-
 
         this.nbMessage++;
     }
@@ -336,7 +342,8 @@ public class ThreadJavacord1 extends Thread {
         if (this.actualGuess != null) {
             String[] tabRequete = eventReq.getMessageContent().split(" ");
             if (tabRequete.length > 1) {
-                String contenuReq = eventReq.getMessageContent().substring("capture ".length());
+                String contenuReq = eventReq.getMessageContent().substring((this.prefix+"capture ").length());
+                //System.out.println(this.actualGuess.getNom(this.nomOriginaux, eventReq.getServer().get()));
 
                 if (contenuReq.equalsIgnoreCase(this.actualGuess.getNom(this.nomOriginaux, eventReq.getServer().get()))) {
                     if (Math.random() < this.actualGuess.getTauxDrop()) {
@@ -396,8 +403,8 @@ public class ThreadJavacord1 extends Thread {
             this.demandeReset = true;
             eventReq.getChannel().sendMessage(">>> Etes-vous sûr(e) de vouloir effacer la mémoire ?????\n"
                     + "En effaçant la mémoire tout le monde perdra son inventaire et les taux de drop des membres se réinitialiseront.\n"
-                    + "Pour annuler la demande de reset memoire faites \'"+this.prefix+"resetmemoire annuler\',\n"
-                    + "Pour confirmer la demande de reset memoire faites \'"+this.prefix+"resetmemoire confirmer\'.\n"
+                    + "Pour annuler la demande de reset memoire faites `"+this.prefix+"resetmemoire annuler`,\n"
+                    + "Pour confirmer la demande de reset memoire faites `"+this.prefix+"resetmemoire confirmer`.\n"
                     + "Si vous ne faites rien la demande sera automatiquement annulé après un petit moment.");
         } else {
             if (tabRequete.length == 2) {
@@ -410,10 +417,10 @@ public class ThreadJavacord1 extends Thread {
                     this.demandeReset = false;
                     eventReq.getChannel().sendMessage("Mémoire réinitialisé !");
                 } else {
-                    eventReq.getChannel().sendMessage("Erreur: Veuillez spécifier \'confirmer\' ou \'annuler\'.");
+                    eventReq.getChannel().sendMessage("Erreur: Veuillez spécifier `confirmer` ou `annuler`.");
                 }
             } else {
-                eventReq.getChannel().sendMessage("Erreur: Veuillez spécifier \'confirmer\' ou \'annuler\'.");
+                eventReq.getChannel().sendMessage("Erreur: Veuillez spécifier `confirmer` ou `annuler`.");
             }
         }
     }
@@ -427,6 +434,110 @@ public class ThreadJavacord1 extends Thread {
                 + "\nNombre de message minimum pour considérer une activité (messageactif): " + this.niveauActivite
                 + "\nDemande resetmemoire (demandereset): " + this.demandeReset);
     }
+
+
+    public void eventEchange(MessageCreateEvent eventReq) {
+        String[] tabRequete = eventReq.getMessageContent().split(" ");
+        
+        if (tabRequete.length == 2) {
+            try {
+                int idMembre = Integer.parseInt(tabRequete[1]);
+                MembreCollectable mAuteur = getMembreById(event.getMessageAuthor().getIdAsString());
+                if (idMembre >= 0 && idMembre < mAuteur.getInventaire().size()) {
+                    if (propEchanges.size() < 2) {
+                        this.propEchanges.add(new PropositionEchange(mAuteur, idMembre));
+                        eventReq.getChannel().sendMessage("Echange proposé !");
+                        if (propEchanges.size() == 2) {
+                            eventReq.getChannel().sendMessage(">>> Vous vous apprété à échanger "
+                                    + propEchanges.get(0).getMembreAEchanger().getNom(this.nomOriginaux, eventReq.getServer().get())
+                                    + " de " + propEchanges.get(0).getMembreProposition().getMentionTag() + " avec "
+                                    + propEchanges.get(1).getMembreAEchanger().getNom(this.nomOriginaux, eventReq.getServer().get())
+                                    + " de " + propEchanges.get(1).getMembreProposition().getMentionTag()
+                                    + ".\nChacun doit renvoyer `"+this.prefix+"echange confirmer` pour confirmer l'échange.\n"
+                                    + "Vous pouvez également annuler l'échange, si un des deux membre renvoie `"+this.prefix+"echange annuler` l'échange sera annulé.\n"
+                                    + "Si l'échange n'est pas confirmer par les deux membres, l'échange sera annulé après un petit moment.");
+                        }
+
+                    } else {
+                        eventReq.getChannel().sendMessage("Deux échanges sont déjà en attente de confirmation !\n"
+                                + "Veuillez attendre que la transaction se termine avant de proposer un autre échange.");
+                    }
+
+                } else {
+                    eventReq.getChannel().sendMessage("Erreur: le numéro doit correspondre à un id de votre inventaire.");
+                }
+            } catch (NumberFormatException nfe) {
+                if (tabRequete[1].equalsIgnoreCase("annuler")) {
+                    switch(this.propEchanges.size()) {
+                        case 1:
+                            if (eventReq.getMessageAuthor().getIdAsString()
+                                    .equalsIgnoreCase(this.propEchanges.get(0).getMembreProposition().getId())){
+                                this.propEchanges = new ArrayList<>();
+                                eventReq.getChannel().sendMessage("Toutes les propositions d'échange ont été supprimé.");
+                            } else {
+                                eventReq.getChannel().sendMessage("Erreur: Vous devez avoir proposer un échange pour pouvoir l'annuler.");
+                            }
+                            break;
+                        case 2:
+                            if (eventReq.getMessageAuthor().getIdAsString()
+                                    .equalsIgnoreCase(this.propEchanges.get(0).getMembreProposition().getId()) ||
+                                eventReq.getMessageAuthor().getIdAsString()
+                                    .equalsIgnoreCase(this.propEchanges.get(1).getMembreProposition().getId())) {
+
+                                this.propEchanges = new ArrayList<>();
+                                eventReq.getChannel().sendMessage("Toutes les propositions d'échange ont été supprimé.");
+                            } else {
+                                eventReq.getChannel().sendMessage("Erreur: Vous devez avoir proposer un échange pour pouvoir l'annuler.");
+                            }
+                            break;
+                        default:
+                            eventReq.getChannel().sendMessage("Il n'y a déjà aucune proposition d'échange en cours.");
+                            break;
+                    }
+
+                } else if (tabRequete[1].equalsIgnoreCase("confirmer")) {
+                    if (this.propEchanges.size() == 2){
+                        for (int i=0; i<2; i++) {
+                            if (eventReq.getMessageAuthor().getIdAsString()
+                                    .equalsIgnoreCase(this.propEchanges.get(0).getMembreProposition().getId())) {
+
+                                this.propEchanges.get(i).confirmer();
+                                System.out.println("Echange confirmé");
+                            }
+                        }
+                        if (this.propEchanges.get(0).estConfirme() && this.propEchanges.get(1).estConfirme()) {
+                            fairePropositionEchange();
+                            eventReq.getChannel().sendMessage("Echange effectué entre "
+                                    + propEchanges.get(0).getMembreProposition().getMentionTag()
+                                    + " et " + propEchanges.get(0).getMembreProposition().getMentionTag() + " !");
+                            this.propEchanges = new ArrayList<>();
+                        }
+                    } else {
+                        eventReq.getChannel().sendMessage("Il doit y avoir deux propositions pour pouvoir les valider.");
+                    }
+                } else {
+                    eventReq.getChannel().sendMessage("Erreur: Vous devez spécifier un numéro correspondant à votre inventaire.");
+                }
+            }
+        } else {
+            eventReq.getChannel().sendMessage("Erreur: Vous devez spécifier un numéro correspondant à votre inventaire"
+                    + " ou `annuler` ou `confirmer`.");
+        }
+    }
+
+
+// EVENT JOIN / LEAVE
+
+    public void eventUserJoin(User u) {
+        this.listMembre.add(new MembreCollectable(u, false));
+        System.out.println("Le nouveau membre a été ajouté !");
+    }
+
+    public void eventUserLeave(User u) {
+        this.listMembre.remove(getMembreById(u.getIdAsString()));
+        System.out.println("L'ancien membre a été supprimé !");
+    }
+
 
 
 // INITIALISATION

@@ -19,7 +19,7 @@ import java.util.Optional;
 public class Main {
 
     static List<ThreadJavacord1> listThread = new ArrayList<>();
-    static String prefix = "pd.";   //ne doit pas contenir d'espace
+    static String prefix = "pd.";   //ne doit pas contenir d'espace (c pour cuck)
 
     public static void main(String[] args) {
         String token = "";
@@ -35,50 +35,73 @@ public class Main {
         ThreadAppelSave thas = new ThreadAppelSave(1, listThread);
         thas.start();
 
+
         api.addMessageCreateListener(event -> {
-            String[] tabRequete = stringToArray(event.getMessageContent());
+            if (event.getMessageContent().startsWith(prefix)) {
+                String[] tabRequete = stringToArray(event.getMessageContent());
 
-            if (tabRequete[0].equalsIgnoreCase(prefix+"ping")) {
-                event.getChannel().sendMessage(prefix+"Pong!");
-            }
-
-            else if (tabRequete[0].equalsIgnoreCase(prefix+"lancer")) {
-                if (event.getMessageAuthor().isServerAdmin()) {
-                    if (tabRequete.length == 4) {
-                        try {
-                            int nbactif = Integer.parseInt(tabRequete[1]);
-                            int tempsMin = Integer.parseInt(tabRequete[2]);
-                            int tempsMax = Integer.parseInt(tabRequete[3]);
-                            if (tempsMin <= tempsMax) {
-                                lancerThread(event, nbactif, tempsMin, tempsMax);
-                            } else {
-                                event.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax.");
+                if (tabRequete[0].equalsIgnoreCase(prefix + "ping")) {
+                    event.getChannel().sendMessage(prefix + "Pong!");
+                } else if (tabRequete[0].equalsIgnoreCase(prefix + "lancer")) {
+                    if (event.getMessageAuthor().isServerAdmin()) {
+                        if (tabRequete.length == 4) {
+                            try {
+                                int nbactif = Integer.parseInt(tabRequete[1]);
+                                int tempsMin = Integer.parseInt(tabRequete[2]);
+                                int tempsMax = Integer.parseInt(tabRequete[3]);
+                                if (tempsMin <= tempsMax) {
+                                    if (nbactif > 0) {
+                                        lancerThread(event, nbactif, tempsMin, tempsMax);
+                                    } else {
+                                        event.getChannel().sendMessage("Erreur: nbActif doit être superieur à 0.");
+                                    }
+                                } else {
+                                    event.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax.");
+                                }
+                            } catch (NumberFormatException nfe) {
+                                //nfe.getMessage();
+                                event.getChannel().sendMessage("Erreur: vous devez specifier 3 entiers.");
                             }
-                        } catch (NumberFormatException nfe) {
-                            //nfe.getMessage();
-                            event.getChannel().sendMessage("Erreur: vous devez specifier 3 entiers.");
+                        } else {
+                            event.getChannel().sendMessage("Erreur: vous devez specifier 3 entiers:\n"
+                                    + "Un pour le nombre de message correspondant à une activité minimum,\n"
+                                    + "2 autres entiers pour spécifier l'intervale de temps en minutes entre les apparitions.");
                         }
                     } else {
-                        event.getChannel().sendMessage("Erreur: vous devez specifier 3 entiers:\n"
-                                + "Un pour le nombre de message correspondant à une activité minimum,\n"
-                                + "2 autres entiers pour spécifier l'intervale de temps entre les apparitions.");
+                        event.getChannel().sendMessage("Vous devez être administrateur pour lancer le thread.");
                     }
-                } else { event.getChannel().sendMessage("Vous devez être administrateur pour lancer le thread."); }
-            }
-
-            else if (tabRequete[0].equalsIgnoreCase(prefix+"stop")) {
-                if (event.getMessageAuthor().isServerAdmin()) {
-                    stopperThread(event);
-                } else { event.getChannel().sendMessage("Vous devez être administrateur pour stopper le thread."); }
-            }
-
-            else {
-                ThreadJavacord1 thj = getThreadLance(event.getServer().get().getId());
-                if (thj != null) {
-                    thj.gestionEvent(event);
+                } else if (tabRequete[0].equalsIgnoreCase(prefix + "stop")) {
+                    if (event.getMessageAuthor().isServerAdmin()) {
+                        stopperThread(event);
+                    } else {
+                        event.getChannel().sendMessage("Vous devez être administrateur pour stopper le thread.");
+                    }
+                } else {
+                    ThreadJavacord1 thj = getThreadLance(event.getServer().get().getId());
+                    if (thj != null) {
+                        thj.gestionEvent(event);
+                    }
+                    else {
+                        event.getChannel().sendMessage("Erreur: `" + tabRequete[0] + "` commande inconnu. "
+                            + "Lancez le bot avec la commande `"+prefix+"lancer`.");
+                    }
                 }
             }
 
+        });
+
+        api.addServerMemberLeaveListener(event -> {
+            ThreadJavacord1 thj = getThreadLance(event.getServer().getId());
+            if (thj != null) {
+                thj.eventUserLeave(event.getUser());
+            }
+        });
+
+        api.addServerMemberJoinListener(event -> {
+            ThreadJavacord1 thj = getThreadLance(event.getServer().getId());
+            if (thj != null) {
+                thj.eventUserJoin(event.getUser());
+            }
         });
 
 
