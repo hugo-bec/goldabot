@@ -19,7 +19,7 @@ import java.util.Optional;
 public class Main {
 
     static List<ThreadJavacord1> listThread = new ArrayList<>();
-    static String prefix = "pd.";   //ne doit pas contenir d'espace (c pour cuck)
+    static String prefixOriginal = "g.";   //ne doit pas contenir d'espace
 
     public static void main(String[] args) {
         String token = "";
@@ -40,78 +40,51 @@ public class Main {
             String[] tabRequete = event.getMessageContent().split(" ");
             ThreadJavacord1 thj = getThreadLance(event.getServer().get().getId());
 
-            if (event.getMessageContent().startsWith(prefix)) {
+            if (tabRequete[0].equalsIgnoreCase(prefixOriginal + "ping")) {
+                event.getChannel().sendMessage("Pong!");
 
-                if (tabRequete[0].equalsIgnoreCase(prefix + "ping")) {
-                    event.getChannel().sendMessage(prefix + "Pong!");
-
-                } else if (tabRequete[0].equalsIgnoreCase(prefix + "lancer")) {
-                    if (event.getMessageAuthor().isServerAdmin()) {
-                        if (tabRequete.length == 4) {
-                            try {
-                                int nbactif = Integer.parseInt(tabRequete[1]);
-                                int tempsMin = Integer.parseInt(tabRequete[2]);
-                                int tempsMax = Integer.parseInt(tabRequete[3]);
-                                if (tempsMin <= tempsMax) {
-                                    if (nbactif > 0) {
-                                        lancerThread(event, nbactif, tempsMin, tempsMax);
-                                    } else {
-                                        event.getChannel().sendMessage("Erreur: nbActif doit être superieur à 0.");
-                                    }
+            } else if (tabRequete[0].equalsIgnoreCase(prefixOriginal + "lancer")) {
+                if (event.getMessageAuthor().isServerAdmin()) {
+                    if (tabRequete.length == 4) {
+                        try {
+                            int nbactif = Integer.parseInt(tabRequete[1]);
+                            int tempsMin = Integer.parseInt(tabRequete[2]);
+                            int tempsMax = Integer.parseInt(tabRequete[3]);
+                            if (tempsMin <= tempsMax) {
+                                if (nbactif > 0) {
+                                    lancerThread(event, nbactif, tempsMin, tempsMax);
                                 } else {
-                                    event.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax.");
+                                    event.getChannel().sendMessage("Erreur: nbActif doit être superieur à 0.");
                                 }
-                            } catch (NumberFormatException nfe) {
-                                //nfe.getMessage();
-                                event.getChannel().sendMessage("Erreur: vous devez specifier 3 entiers.");
+                            } else {
+                                event.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax.");
                             }
-                        } else {
-                            event.getChannel().sendMessage("Erreur: vous devez specifier 3 entiers:\n"
-                                    + "Un pour le nombre de message correspondant à une activité minimum,\n"
-                                    + "2 autres entiers pour spécifier l'intervale de temps en minutes entre les apparitions.");
+                        } catch (NumberFormatException nfe) {
+                            //nfe.getMessage();
+                            event.getChannel().sendMessage("Erreur: vous devez specifier 3 entiers.");
                         }
                     } else {
-                        event.getChannel().sendMessage("Vous devez être administrateur pour lancer le thread.");
+                        event.getChannel().sendMessage("Erreur: vous devez specifier 3 entiers:\n"
+                                + "Un pour le nombre de message correspondant à une activité minimum,\n"
+                                + "2 autres entiers pour spécifier l'intervale de temps en minutes entre les apparitions.");
                     }
-                } else if (tabRequete[0].equalsIgnoreCase(prefix + "stop")) {
-                    if (event.getMessageAuthor().isServerAdmin()) {
-                        stopperThread(event);
-                    } else {
-                        event.getChannel().sendMessage("Vous devez être administrateur pour stopper le thread.");
-                    }
+                } else {
+                    event.getChannel().sendMessage("Vous devez être administrateur pour lancer le thread.");
                 }
-
-                else if (tabRequete[0].equalsIgnoreCase(prefix + "aide")
-                    || tabRequete[0].equalsIgnoreCase(prefix + "help")) {
-                    String message = ">>> **Commandes Goldabot** :\n" +
-                        "- `" +prefix+"ping` : renvoi Pong\n" +
-                        "- `" +prefix+"capture [nom]` : Permet de capturer un membre qui est apparu\n" +
-                        "- `" +prefix+"inventaire` : affiche l'inventaire de vos membre capturé\n" +
-                        "- `" +prefix+"sauvegarder` : Sauvegarde tout inventaire en cas de crash, " +
-                            "en sachant qu'une sauvegarde est effectué automatiquement toute les 20/30 minutes\n" +
-                        "- `" +prefix+"echange [idInventaire] OU \'annuler\' OU \'confirmer\'` : Permet de proposer un echange " +
-                            "avec le membre de votre idInventaire; Si 2 échanges sont proposé, chacune des 2 personnes doivent confirmer l'échange;" +
-                            "Chacun peut annuler l'échange si il ne le trouve pas convenable; Si rien ne se passe les propositons seront " +
-                            "annulé en même temps que la sauvegarde automatique";
-
-                    if (event.getMessageAuthor().isServerAdmin()) {
-                        message += "\n\n **Commandes admin** : \n" +
-                            "- `" +prefix+"lancer [nbActif] [tempsMin] [tempsMax]` : Lance le Thread qui permet de faire apparaitre les membres à capturer\n" +
-                            "- `" +prefix+"stop` : Permet d'arréter le thread qui fait apparaitre les membres à capturer\n" +
-                            "- `" +prefix+"changer` : Permet de changer les paramètres; Voir `" +prefix+"changer aide OU help` pour voir les détails des différentes commandes\n" +
-                            "- `" +prefix+"voirconfig` : Affiche les paramètres actuel\n" +
-                            "- `" +prefix+"resetmemoire` : Permet de reset la mémoire, c'est à dire de réinitialiser tous les inventaires et les taux de drop\n";
-                    }
-                    event.getChannel().sendMessage(message);
+            } else if (tabRequete[0].equalsIgnoreCase(prefixOriginal + "stop")) {
+                if (event.getMessageAuthor().isServerAdmin()) {
+                    stopperThread(event);
+                } else {
+                    event.getChannel().sendMessage("Vous devez être administrateur pour stopper le thread.");
                 }
+            }
 
-                else {
-                    if (thj != null) {
-                        thj.gestionEvent(event);
-                    } else {
-                        event.getChannel().sendMessage("Erreur: `" + tabRequete[0] + "` commande inconnu. "
-                                + "Lancez le bot avec la commande `" + prefix + "lancer`.");
-                    }
+            else {
+                if (thj != null) {
+                    thj.gestionEvent(event);
+                } else {
+                    event.getChannel().sendMessage("Erreur: `" + tabRequete[0] + "` commande inconnu. "
+                            + "Lancez le bot avec la commande `" + prefixOriginal + "lancer`.");
                 }
             }
 
@@ -148,7 +121,7 @@ public class Main {
             }
         }
         if (!threadDejaLance) {
-            ThreadJavacord1 t1 = new ThreadJavacord1(event, prefix, nbactif, tempsMin, tempsMax);
+            ThreadJavacord1 t1 = new ThreadJavacord1(event, prefixOriginal, nbactif, tempsMin, tempsMax);
             t1.start();
             listThread.add(t1);
             event.getChannel().sendMessage("main: thread lance");

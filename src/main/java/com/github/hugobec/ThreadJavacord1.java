@@ -27,9 +27,7 @@ import java.util.stream.Stream;
 
 /**A Faire :
  *
- * Faire une commande help pour admin et non admin
- *
- * fonction resettant les demandes (echange + resetmemoire)
+ * changer prefix
  *
  *
  * */
@@ -44,7 +42,7 @@ public class ThreadJavacord1 extends Thread {
     private double tauxEx;
     private boolean nomOriginaux;
     private int niveauActivite;
-    private String prefix;
+    private String prefix, prefixOriginal;
 
     private boolean demandeStop;
     private boolean demandeReset;
@@ -67,7 +65,9 @@ public class ThreadJavacord1 extends Thread {
         this.tauxEx = 0.1;
         this.nomOriginaux = true;
         this.nomFichierSave = "..\\fichiers_goldabot\\saves\\save_" + this.getServeur().getName()+ "_" + this.getServeur().getId();
+        this.prefixOriginal = prefix;
         this.prefix = prefix;
+
 
         this.demandeStop = false;
         this.demandeReset = false;
@@ -247,6 +247,7 @@ public class ThreadJavacord1 extends Thread {
         if (eventReq.getMessageContent().startsWith(this.prefix)) {
 
             String[] tabRequete = eventReq.getMessageContent().split(" ");
+            System.out.println(tabRequete[0] + " : " + this.prefix + "capture");
 
             if (tabRequete[0].equalsIgnoreCase(this.prefix + "capture")) {
                 eventCapture(eventReq);
@@ -279,13 +280,35 @@ public class ThreadJavacord1 extends Thread {
                 eventEchange(eventReq);
             }
 
+            else if (tabRequete[0].equalsIgnoreCase(prefix + "aide")
+                    || tabRequete[0].equalsIgnoreCase(prefix + "help")) {
+                String message = ">>> **Commandes Goldabot** :\n" +
+                        "- `" +prefixOriginal+"ping` : renvoi Pong\n" +
+                        "- `" +prefix+"capture [nom]` : Permet de capturer un membre qui est apparu\n" +
+                        "- `" +prefix+"inventaire` : affiche l'inventaire de vos membre capturé\n" +
+                        "- `" +prefix+"sauvegarder` : Sauvegarde tout inventaire en cas de crash, " +
+                        "en sachant qu'une sauvegarde est effectué automatiquement toute les 20/30 minutes\n" +
+                        "- `" +prefix+"echange [idInventaire] OU \'annuler\' OU \'confirmer\'` : Permet de proposer un echange " +
+                        "avec le membre de votre idInventaire; Si 2 échanges sont proposé, chacune des 2 personnes doivent confirmer l'échange;" +
+                        "Chacun peut annuler l'échange si il ne le trouve pas convenable; Si rien ne se passe les propositons seront " +
+                        "annulé en même temps que la sauvegarde automatique";
+
+                if (event.getMessageAuthor().isServerAdmin()) {
+                    message += "\n\n **Commandes admin** : \n" +
+                            "- `" +prefixOriginal+"lancer [nbActif] [tempsMin] [tempsMax]` : Lance le Thread qui permet de faire apparaitre les membres à capturer\n" +
+                            "- `" +prefixOriginal+"stop` : Permet d'arréter le thread qui fait apparaitre les membres à capturer\n" +
+                            "- `" +prefix+"changer` : Permet de changer les paramètres; Voir `" +prefix+"changer aide OU help` pour voir les détails des différentes commandes\n" +
+                            "- `" +prefix+"voirconfig` : Affiche les paramètres actuel\n" +
+                            "- `" +prefix+"resetmemoire` : Permet de reset la mémoire, c'est à dire de réinitialiser tous les inventaires et les taux de drop\n";
+                }
+                event.getChannel().sendMessage(message);
+            }
+
             else {
                 eventReq.getChannel().sendMessage("Erreur: `" + tabRequete[0] + "` commande inconnu.\n"
                 + "Faites `" + this.prefix + "help` ou `" + this.prefix + "aide` pour afficher la liste des commandes possibles.");
             }
         }
-
-        this.nbMessage++;
     }
 
     private void eventCapture(MessageCreateEvent eventReq){
@@ -436,31 +459,41 @@ public class ThreadJavacord1 extends Thread {
                     }
                 }
 
+                else if (tabRequete[1].equalsIgnoreCase("prefix")) {
+                    this.prefix = tabRequete[2];
+                    eventReq.getChannel().sendMessage("Prefix changer en `" + this.prefix + "` !");
+                }
+
                 else {
                     eventReq.getChannel().sendMessage("Erreur: paramètre \"" + tabRequete[1] + "\" inconnu.");
                 }
 
             }
-            else if (tabRequete.length >= 2
-                    && (tabRequete[1].equalsIgnoreCase("aide") || tabRequete[1].equalsIgnoreCase("help"))) {
+            else if (tabRequete.length >= 2) {
+                if (tabRequete[1].equalsIgnoreCase("aide") || tabRequete[1].equalsIgnoreCase("help")) {
 
-                String message = ">>> **Paramètres commande \'changer\'** :\n\n" +
-                        "- `tauxex [taux]` : Permet de changer le taux de spawn des membres EX\n" +
-                        "- `messageactif [nbMessage]` : Permet de changer le nombre de message minimal entre seux spawn pour considérer une activité\n" +
-                        "- `nomoriginal [vrai OU faux]` : Permet de mettre le bot en mode \'nom originaux des membres\' ou en mode \'pseudo sur le serveur\'; " +
-                        "Ceci changera également les pseudos à deviner durant la capture\n" +
-                        "- `intervalle [minutesMin] [minutesMax]` : Permet de changer la fourchette de temps possible entre les spawns\n" +
-                        "- `tentative [nbMin] [nbMax]` : Permet de changer la fourchette de nombre de tentatives possible pour la capture d'un membre (défaut: 1 à 4)\n";
+                    String message = ">>> **Paramètres commande \'changer\'** :\n\n" +
+                            "- `tauxex [taux]` : Permet de changer le taux de spawn des membres EX\n" +
+                            "- `messageactif [nbMessage]` : Permet de changer le nombre de message minimal entre seux spawn pour considérer une activité\n" +
+                            "- `nomoriginal [vrai OU faux]` : Permet de mettre le bot en mode \'nom originaux des membres\' ou en mode \'pseudo sur le serveur\'; " +
+                            "Ceci changera également les pseudos à deviner durant la capture\n" +
+                            "- `intervalle [minutesMin] [minutesMax]` : Permet de changer la fourchette de temps possible entre les spawns\n" +
+                            "- `tentative [nbMin] [nbMax]` : Permet de changer la fourchette de nombre de tentatives possible pour la capture d'un membre (défaut: 1 à 4)\n" +
+                            "- `prefix [prefix]` : Permet de changer le prefix du bot\n";
 
-                eventReq.getChannel().sendMessage(message);
+                    eventReq.getChannel().sendMessage(message);
+                }
+                else {
+                    eventReq.getChannel().sendMessage("Erreur: paramètre \"" + tabRequete[1] + "\" inconnu.");
+                }
             }
 
             else {
-                eventReq.getChannel().sendMessage("Veuillez donner le nom du paramètre et la/les variable(s) associée(s) ou help.");
+                eventReq.getChannel().sendMessage("Erreur: Veuillez donner le nom du paramètre et la/les variable(s) associée(s) ou (aide ou help).");
             }
 
         } else {
-            eventReq.getChannel().sendMessage("Vous devez être administrateur pour changer les paramètres.");
+            eventReq.getChannel().sendMessage("Erreur: Vous devez être administrateur pour changer les paramètres.");
         }
     }
 
