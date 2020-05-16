@@ -27,7 +27,6 @@ import java.util.stream.Stream;
 
 /**A Faire :
  *
- * changer prefix
  *
  *
  * */
@@ -282,26 +281,7 @@ public class ThreadJavacord1 extends Thread {
 
             else if (tabRequete[0].equalsIgnoreCase(prefix + "aide")
                     || tabRequete[0].equalsIgnoreCase(prefix + "help")) {
-                String message = ">>> **Commandes Goldabot** :\n" +
-                        "- `" +prefixOriginal+"ping` : renvoi Pong\n" +
-                        "- `" +prefix+"capture [nom]` : Permet de capturer un membre qui est apparu\n" +
-                        "- `" +prefix+"inventaire` : affiche l'inventaire de vos membre capturé\n" +
-                        "- `" +prefix+"sauvegarder` : Sauvegarde tout inventaire en cas de crash, " +
-                        "en sachant qu'une sauvegarde est effectué automatiquement toute les 20/30 minutes\n" +
-                        "- `" +prefix+"echange [idInventaire] OU \'annuler\' OU \'confirmer\'` : Permet de proposer un echange " +
-                        "avec le membre de votre idInventaire; Si 2 échanges sont proposé, chacune des 2 personnes doivent confirmer l'échange;" +
-                        "Chacun peut annuler l'échange si il ne le trouve pas convenable; Si rien ne se passe les propositons seront " +
-                        "annulé en même temps que la sauvegarde automatique";
-
-                if (event.getMessageAuthor().isServerAdmin()) {
-                    message += "\n\n **Commandes admin** : \n" +
-                            "- `" +prefixOriginal+"lancer [nbActif] [tempsMin] [tempsMax]` : Lance le Thread qui permet de faire apparaitre les membres à capturer\n" +
-                            "- `" +prefixOriginal+"stop` : Permet d'arréter le thread qui fait apparaitre les membres à capturer\n" +
-                            "- `" +prefix+"changer` : Permet de changer les paramètres; Voir `" +prefix+"changer aide OU help` pour voir les détails des différentes commandes\n" +
-                            "- `" +prefix+"voirconfig` : Affiche les paramètres actuel\n" +
-                            "- `" +prefix+"resetmemoire` : Permet de reset la mémoire, c'est à dire de réinitialiser tous les inventaires et les taux de drop\n";
-                }
-                event.getChannel().sendMessage(message);
+                eventAide(eventReq);
             }
 
             else {
@@ -535,6 +515,29 @@ public class ThreadJavacord1 extends Thread {
                 + "\nMode nomOriginaux (nomoriginal): " + this.nomOriginaux
                 + "\nNombre de message minimum pour considérer une activité (messageactif): " + this.niveauActivite
                 + "\nDemande resetmemoire (demandereset): " + this.demandeReset);
+    }
+
+    private void eventAide(MessageCreateEvent eventReq){
+        String message = ">>> **Commandes Goldabot** :\n" +
+                "- `" +prefixOriginal+"ping` : renvoi Pong\n" +
+                "- `" +prefix+"capture [nom]` : Permet de capturer un membre qui est apparu\n" +
+                "- `" +prefix+"inventaire` : affiche l'inventaire de vos membre capturé\n" +
+                "- `" +prefix+"sauvegarder` : Sauvegarde tout inventaire en cas de crash, " +
+                "en sachant qu'une sauvegarde est effectué automatiquement toute les 20/30 minutes\n" +
+                "- `" +prefix+"echange [idInventaire] OU \'annuler\' OU \'confirmer\'` : Permet de proposer un echange " +
+                "avec le membre de votre idInventaire; Si 2 échanges sont proposé, chacune des 2 personnes doivent confirmer l'échange;" +
+                "Chacun peut annuler l'échange si il ne le trouve pas convenable; Si rien ne se passe les propositons seront " +
+                "annulé en même temps que la sauvegarde automatique";
+
+        if (eventReq.getMessageAuthor().isServerAdmin()) {
+            message += "\n\n **Commandes admin** : \n" +
+                    "- `" +prefixOriginal+"lancer [nbActif] [tempsMin] [tempsMax]` : Lance le Thread qui permet de faire apparaitre les membres à capturer\n" +
+                    "- `" +prefixOriginal+"stop` : Permet d'arréter le thread qui fait apparaitre les membres à capturer\n" +
+                    "- `" +prefix+"changer` : Permet de changer les paramètres; Voir `" +prefix+"changer aide OU help` pour voir les détails des différentes commandes\n" +
+                    "- `" +prefix+"voirconfig` : Affiche les paramètres actuel\n" +
+                    "- `" +prefix+"resetmemoire` : Permet de reset la mémoire, c'est à dire de réinitialiser tous les inventaires et les taux de drop\n";
+        }
+        eventReq.getChannel().sendMessage(message);
     }
 
 
