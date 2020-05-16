@@ -37,11 +37,14 @@ public class Main {
 
 
         api.addMessageCreateListener(event -> {
+            String[] tabRequete = event.getMessageContent().split(" ");
+            ThreadJavacord1 thj = getThreadLance(event.getServer().get().getId());
+
             if (event.getMessageContent().startsWith(prefix)) {
-                String[] tabRequete = stringToArray(event.getMessageContent());
 
                 if (tabRequete[0].equalsIgnoreCase(prefix + "ping")) {
                     event.getChannel().sendMessage(prefix + "Pong!");
+
                 } else if (tabRequete[0].equalsIgnoreCase(prefix + "lancer")) {
                     if (event.getMessageAuthor().isServerAdmin()) {
                         if (tabRequete.length == 4) {
@@ -76,16 +79,44 @@ public class Main {
                     } else {
                         event.getChannel().sendMessage("Vous devez être administrateur pour stopper le thread.");
                     }
-                } else {
-                    ThreadJavacord1 thj = getThreadLance(event.getServer().get().getId());
+                }
+
+                else if (tabRequete[0].equalsIgnoreCase(prefix + "aide")
+                    || tabRequete[0].equalsIgnoreCase(prefix + "help")) {
+                    String message = ">>> **Commandes Goldabot** :\n" +
+                        "- `" +prefix+"ping` : renvoi Pong\n" +
+                        "- `" +prefix+"capture [nom]` : Permet de capturer un membre qui est apparu\n" +
+                        "- `" +prefix+"inventaire` : affiche l'inventaire de vos membre capturé\n" +
+                        "- `" +prefix+"sauvegarder` : Sauvegarde tout inventaire en cas de crash, " +
+                            "en sachant qu'une sauvegarde est effectué automatiquement toute les 20/30 minutes\n" +
+                        "- `" +prefix+"echange [idInventaire] OU \'annuler\' OU \'confirmer\'` : Permet de proposer un echange " +
+                            "avec le membre de votre idInventaire; Si 2 échanges sont proposé, chacune des 2 personnes doivent confirmer l'échange;" +
+                            "Chacun peut annuler l'échange si il ne le trouve pas convenable; Si rien ne se passe les propositons seront " +
+                            "annulé en même temps que la sauvegarde automatique";
+
+                    if (event.getMessageAuthor().isServerAdmin()) {
+                        message += "\n\n **Commandes admin** : \n" +
+                            "- `" +prefix+"lancer [nbActif] [tempsMin] [tempsMax]` : Lance le Thread qui permet de faire apparaitre les membres à capturer\n" +
+                            "- `" +prefix+"stop` : Permet d'arréter le thread qui fait apparaitre les membres à capturer\n" +
+                            "- `" +prefix+"changer` : Permet de changer les paramètres; Voir `" +prefix+"changer aide OU help` pour voir les détails des différentes commandes\n" +
+                            "- `" +prefix+"voirconfig` : Affiche les paramètres actuel\n" +
+                            "- `" +prefix+"resetmemoire` : Permet de reset la mémoire, c'est à dire de réinitialiser tous les inventaires et les taux de drop\n";
+                    }
+                    event.getChannel().sendMessage(message);
+                }
+
+                else {
                     if (thj != null) {
                         thj.gestionEvent(event);
-                    }
-                    else {
+                    } else {
                         event.getChannel().sendMessage("Erreur: `" + tabRequete[0] + "` commande inconnu. "
-                            + "Lancez le bot avec la commande `"+prefix+"lancer`.");
+                                + "Lancez le bot avec la commande `" + prefix + "lancer`.");
                     }
                 }
+            }
+
+            if (thj != null) {
+                thj.incrementerNbMessage();
             }
 
         });
@@ -141,11 +172,6 @@ public class Main {
         }
     }
 
-
-    public static String[] stringToArray(String s){
-        String[] words = s.split(" ");
-        return words;
-    }
 
     public static ThreadJavacord1 getThreadLance(long id) {
         for (ThreadJavacord1 thj: listThread){

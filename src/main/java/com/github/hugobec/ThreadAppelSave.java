@@ -29,7 +29,8 @@ public class ThreadAppelSave extends Thread {
             try {
                 for (ThreadJavacord1 th : this.listThread) {
                     th.sauvegarder();
-                    // reset demande
+                    th.resetDemandeEchange();
+                    th.resetDemandeMemoire();
                     //System.out.println(th.getState());
                 }
             } catch (IOException ioe) {
