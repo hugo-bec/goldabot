@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 
 /**A Faire :
  *
+ * une tentative par membre
  *
  *
  * */
@@ -48,6 +49,7 @@ public class ThreadJavacord1 extends Thread {
 
     private List<MembreCollectable> listMembre;
     private MembreCollectable actualGuess;
+    private List<MembreCollectable> membresQuiOntEssaye;
     private List<PropositionEchange> propEchanges;
 
     private int nbMessage;
@@ -105,7 +107,7 @@ public class ThreadJavacord1 extends Thread {
         while(true){
             try {
                 boolean activity = false;
-                Thread.sleep(randInt(tempsMin, tempsMax) * 100); //*60000
+                Thread.sleep(randInt(tempsMin, tempsMax) * 60000);
                 if (this.demandeStop) {
                     this.event.getChannel().sendMessage("thread stoppe");
                     break;
@@ -115,13 +117,14 @@ public class ThreadJavacord1 extends Thread {
                     if (this.actualGuess != null){
                         this.event.getChannel().sendMessage("Le membre s'est enfui !");
                     }
+                    resetPeutCapturer();
                     this.actualGuess = dropMembreCollectable();
                     this.nbTentatives = randInt(1, 4);
                     String messageSpawn = ">>> Un membre ";
                     if (this.actualGuess.isEX()) { messageSpawn += "**EX** "; }
                     messageSpawn += "vient d'apparaitre !" + "\n"
-                        + this.actualGuess.getNom(this.nomOriginaux, this.event.getServer().get()) + "\n"
-                        + "drop: " + this.actualGuess.getTauxDrop() + "\n"
+                        //+ this.actualGuess.getNom(this.nomOriginaux, this.event.getServer().get()) + "\n"
+                        //+ "drop: " + this.actualGuess.getTauxDrop() + "\n"
                         + "nbTentatives: " + this.nbTentatives + "\n";
 
                     try {
@@ -216,7 +219,7 @@ public class ThreadJavacord1 extends Thread {
 
 
 
-// RESET DEMANDE
+// RESET
 
     public void resetDemandeMemoire(){
         this.demandeReset = false;
@@ -224,6 +227,12 @@ public class ThreadJavacord1 extends Thread {
 
     public void resetDemandeEchange(){
         this.propEchanges = new ArrayList<>();
+    }
+
+    public void resetPeutCapturer() {
+        for (MembreCollectable m: this.listMembre) {
+            m.setPeutCapturer(true);
+        }
     }
 
 
@@ -276,6 +285,7 @@ public class ThreadJavacord1 extends Thread {
                 }
 
             } else if (tabRequete[0].equalsIgnoreCase(this.prefix + "echange")) {
+                //System.out.println("nom membre echange : " + eventReq.getMessageAuthor().getName());
                 eventEchange(eventReq);
             }
 
@@ -296,15 +306,29 @@ public class ThreadJavacord1 extends Thread {
             String[] tabRequete = eventReq.getMessageContent().split(" ");
             if (tabRequete.length > 1) {
                 String contenuReq = eventReq.getMessageContent().substring((this.prefix+"capture ").length());
-                //System.out.println(this.actualGuess.getNom(this.nomOriginaux, eventReq.getServer().get()));
+                MembreCollectable mAuteur = getMembreById(eventReq.getMessageAuthor().getIdAsString());
 
-                if (contenuReq.equalsIgnoreCase(this.actualGuess.getNom(this.nomOriginaux, eventReq.getServer().get()))) {
-                    if (Math.random() < this.actualGuess.getTauxDrop()) {
-                        eventReq.getChannel().sendMessage("Utilisateur capturé !");
+                if (mAuteur.peutCapturer()) {
 
-                        getMembreById(eventReq.getMessageAuthor().getIdAsString()).ajouterInventaire(this.actualGuess);
+                    if (contenuReq.equalsIgnoreCase(this.actualGuess.getNom(this.nomOriginaux, eventReq.getServer().get()))) {
+                        if (Math.random() < this.actualGuess.getTauxDrop()) {
+                            eventReq.getChannel().sendMessage("Utilisateur capturé !");
+
+                            getMembreById(eventReq.getMessageAuthor().getIdAsString()).ajouterInventaire(this.actualGuess);
+                        } else {
+                            this.event.getChannel().sendMessage("Vous n'avais pas reussi à capturer l'utilisateur !");
+                            mAuteur.setPeutCapturer(false);
+                            this.nbTentatives--;
+                            if (this.nbTentatives <= 0) {
+                                this.actualGuess = null;
+                                this.event.getChannel().sendMessage("L'utilisateur s'est enfui !");
+                            }
+                        }
+
+                        //System.out.println(this.inventaires);
+                        //this.actualGuess = null;
                     } else {
-                        this.event.getChannel().sendMessage("Vous n'avais pas reussi à capturer l'utilisateur !");
+                        eventReq.getChannel().sendMessage("Incorrect, ce n'est pas son nom !");
                         this.nbTentatives--;
                         if (this.nbTentatives <= 0) {
                             this.actualGuess = null;
@@ -312,16 +336,10 @@ public class ThreadJavacord1 extends Thread {
                         }
                     }
 
-                    //System.out.println(this.inventaires);
-                    //this.actualGuess = null;
                 } else {
-                    eventReq.getChannel().sendMessage("Incorrect, ce n'est pas son nom !");
-                    this.nbTentatives--;
-                    if (this.nbTentatives <= 0) {
-                        this.actualGuess = null;
-                        this.event.getChannel().sendMessage("L'utilisateur s'est enfui !");
-                    }
+                    eventReq.getChannel().sendMessage("Vous avez déjà essayé de capturer le membre :/");
                 }
+
             } else {
                 eventReq.getChannel().sendMessage(
                         "Veuillez donner le nom de l'utilisateur");
@@ -547,9 +565,12 @@ public class ThreadJavacord1 extends Thread {
         if (tabRequete.length == 2) {
             try {
                 int idMembre = Integer.parseInt(tabRequete[1]);
-                MembreCollectable mAuteur = getMembreById(event.getMessageAuthor().getIdAsString());
+                //System.out.println("id membre auteur : " + eventReq.getMessageAuthor().getIdAsString());
+                MembreCollectable mAuteur = getMembreById(eventReq.getMessageAuthor().getIdAsString());
                 if (idMembre >= 0 && idMembre < mAuteur.getInventaire().size()) {
                     if (propEchanges.size() < 2) {
+                        //System.out.println("Auteur proposition : " + mAuteur.getNom(true, eventReq.getServer().get()));
+
                         this.propEchanges.add(new PropositionEchange(mAuteur, idMembre));
                         eventReq.getChannel().sendMessage("Echange proposé !");
                         if (propEchanges.size() == 2) {
@@ -604,7 +625,7 @@ public class ThreadJavacord1 extends Thread {
                     if (this.propEchanges.size() == 2){
                         for (int i=0; i<2; i++) {
                             if (eventReq.getMessageAuthor().getIdAsString()
-                                    .equalsIgnoreCase(this.propEchanges.get(0).getMembreProposition().getId())) {
+                                    .equalsIgnoreCase(this.propEchanges.get(i).getMembreProposition().getId())) {
 
                                 this.propEchanges.get(i).confirmer();
                                 System.out.println("Echange confirmé");
@@ -614,7 +635,7 @@ public class ThreadJavacord1 extends Thread {
                             fairePropositionEchange();
                             eventReq.getChannel().sendMessage("Echange effectué entre "
                                     + propEchanges.get(0).getMembreProposition().getMentionTag()
-                                    + " et " + propEchanges.get(0).getMembreProposition().getMentionTag() + " !");
+                                    + " et " + propEchanges.get(1).getMembreProposition().getMentionTag() + " !");
                             resetDemandeEchange();
                         }
                     } else {

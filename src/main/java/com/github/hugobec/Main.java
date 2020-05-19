@@ -32,7 +32,7 @@ public class Main {
         }
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
 
-        ThreadAppelSave thas = new ThreadAppelSave(1, listThread);
+        ThreadAppelSave thas = new ThreadAppelSave(5, listThread);
         thas.start();
 
 
@@ -83,8 +83,10 @@ public class Main {
                 if (thj != null) {
                     thj.gestionEvent(event);
                 } else {
-                    event.getChannel().sendMessage("Erreur: `" + tabRequete[0] + "` commande inconnu. "
-                            + "Lancez le bot avec la commande `" + prefixOriginal + "lancer`.");
+                    if (tabRequete[0].startsWith(prefixOriginal)) {
+                        event.getChannel().sendMessage("Erreur: `" + tabRequete[0] + "` commande inconnu. "
+                                + "Lancez le bot avec la commande `" + prefixOriginal + "lancer`.");
+                    }
                 }
             }
 

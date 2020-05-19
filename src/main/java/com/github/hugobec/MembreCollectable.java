@@ -13,12 +13,14 @@ public class MembreCollectable {
     private boolean isEX;
     private double tauxDrop;
     private List<MembreCollectable> inventaire;
+    private boolean peutCapturer;
 
     public MembreCollectable(User membre, boolean isEX) {
         this.membre = membre;
         this.isEX = isEX;
         this.tauxDrop = Math.random();
         this.inventaire = new ArrayList<>();
+        this.peutCapturer = true;
     }
 
     public MembreCollectable(MembreCollectable m) {
@@ -65,6 +67,9 @@ public class MembreCollectable {
         isEX = EX;
     }
 
+    public boolean peutCapturer() { return peutCapturer; }
+    public void setPeutCapturer(boolean peutCapturer) { this.peutCapturer = peutCapturer; }
+
     public void ajouterInventaire(MembreCollectable m){
         this.inventaire.add(m);
     }
@@ -78,12 +83,12 @@ public class MembreCollectable {
         } else {
             stringInventaire += this.membre.getMentionTag() + " voici votre inventaire :";
             for (MembreCollectable m: this.inventaire) {
-                stringInventaire += "\n" + i + " | " + m.getNom(nomOriginaux, serveur);
-                if (m.isEX()) {
-                    stringInventaire.replace("EX", "**EX**");
-                }
+                stringInventaire += "\n" + i + " | " + m.getNom(nomOriginaux, serveur).replace("EX", "**EX**");;
                 i++;
             }
+            //stringInventaire.replace("EX", "**EX**");
+            System.out.println(stringInventaire);
+            //System.out.println("test EX salut a a a EX".replace("EX", "**EX**"));
         }
         return stringInventaire;
     }
