@@ -34,7 +34,7 @@ public class Main {
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
         System.out.println("Logged in");
 
-        ThreadAppelSave thas = new ThreadAppelSave(20, listThread);
+        ThreadAppelSave thas = new ThreadAppelSave(15, listThread);
         thas.start();
 
 
@@ -85,7 +85,7 @@ public class Main {
                     api.disconnect();
                     System.out.println("Logged out");
                 } else {
-                    event.getChannel().sendMessage("Vous devez être administrateur pour stopper le thread.");
+                    event.getChannel().sendMessage("Vous devez être owner pour stopper le bot");
                 }
             }
             else {
