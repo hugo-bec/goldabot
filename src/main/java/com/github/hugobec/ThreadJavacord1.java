@@ -65,7 +65,7 @@ public class ThreadJavacord1 extends Thread {
         this.niveauActivite = niveauActivite;
         this.tauxEx = 0.1;
         this.nomOriginaux = true;
-        this.nomFichierSave = "..\\fichiers_goldabot\\saves\\save_" + this.getServeur().getName()+ "_" + this.getServeur().getId();
+        this.nomFichierSave = "../fichiers_goldabot/saves/save_" + this.getServeur().getName()+ "_" + this.getServeur().getId();
         this.prefixOriginal = prefix;
         this.prefix = prefix;
 
@@ -155,7 +155,7 @@ public class ThreadJavacord1 extends Thread {
     }
 
     private File getImageInverse(MembreCollectable m) throws Exception{
-        File filepdpi = new File("..\\fichiers_goldabot\\pdpinverse1.png");
+        File filepdpi = new File("../fichiers_goldabot/pdpinverse1.png");
         URL input = m.getAvatarUrl();
         BufferedImage image = ImageIO.read(input);
         int rgb, alpha, red, green, blue, rgbi;
@@ -180,7 +180,7 @@ public class ThreadJavacord1 extends Thread {
     }
 
     private File getImageOriginale(MembreCollectable m) throws Exception{
-        File filepdp = new File("..\\fichiers_goldabot\\pdporiginale1.png");
+        File filepdp = new File("../fichiers_goldabot/pdporiginale1.png");
         URL input = m.getAvatarUrl();
         BufferedImage image = ImageIO.read(input);
         ImageIO.write(image, "png", filepdp);
