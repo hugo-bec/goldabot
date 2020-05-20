@@ -65,7 +65,7 @@ public class ThreadJavacord1 extends Thread {
         this.niveauActivite = niveauActivite;
         this.tauxEx = 0.1;
         this.nomOriginaux = true;
-        this.nomFichierSave = "../fichiers_goldabot/saves/save_" + this.getServeur().getName()+ "_" + this.getServeur().getId();
+        this.nomFichierSave = "../fichiers_goldabot/saves/save_" + this.getServeur().getId();
         this.prefixOriginal = prefix;
         this.prefix = prefix;
 
