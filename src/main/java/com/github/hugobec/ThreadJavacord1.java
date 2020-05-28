@@ -555,6 +555,8 @@ public class ThreadJavacord1 extends Thread {
                     "- `" +prefix+"voirconfig` : Affiche les paramètres actuel\n" +
                     "- `" +prefix+"resetmemoire` : Permet de reset la mémoire, c'est à dire de réinitialiser tous les inventaires et les taux de drop\n";
         }
+        message += "\nCode source : https://github.com/hugo-bec/goldabot";
+
         eventReq.getChannel().sendMessage(message);
     }
 
