@@ -112,7 +112,7 @@ public class ThreadJavacord1 extends Thread {
                     this.event.getChannel().sendMessage("thread stoppe");
                     break;
                 }
-                System.out.println(this.nbMessage+" >= "+this.niveauActivite);
+                //System.out.println(this.nbMessage+" >= "+this.niveauActivite);
                 if (this.nbMessage >= this.niveauActivite) { // && this.actualGuess == null) {
                     if (this.actualGuess != null){
                         this.event.getChannel().sendMessage("Le membre s'est enfui !");
@@ -255,7 +255,7 @@ public class ThreadJavacord1 extends Thread {
         if (eventReq.getMessageContent().startsWith(this.prefix)) {
 
             String[] tabRequete = eventReq.getMessageContent().split(" ");
-            System.out.println(tabRequete[0] + " : " + this.prefix + "capture");
+            //System.out.println(tabRequete[0] + " : " + this.prefix + "capture");
 
             if (tabRequete[0].equalsIgnoreCase(this.prefix + "capture")) {
                 eventCapture(eventReq);

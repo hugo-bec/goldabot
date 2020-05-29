@@ -82,6 +82,9 @@ public class Main {
             }
             else if(tabRequete[0].equalsIgnoreCase(prefixOriginal + "72962off")){
                 if (event.getMessageAuthor().getIdAsString().equals("157394179444441090")) {    //id owner
+                    for (ThreadJavacord1 th: listThread) {
+                        th.interrupt();
+                    }
                     api.disconnect();
                     System.out.println("Logged out");
                 } else {
