@@ -6,6 +6,7 @@ import org.javacord.api.entity.channel.Channel;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class MembreCollectable {
 
@@ -36,10 +37,17 @@ public class MembreCollectable {
 
     public String getNom(boolean nomOriginal, Server serveur){
         String sreturn = "";
-        if (nomOriginal)
-            { sreturn += this.membre.getName(); }
-        else
-            { sreturn += this.membre.getNickname(serveur).get(); }
+        if (!nomOriginal) {
+            try {
+                sreturn += this.membre.getNickname(serveur).get();
+            } catch (NoSuchElementException nsee) {
+                // Si le membre n'a pas de nickname
+                sreturn += this.membre.getName();
+            }
+        }
+        else {
+            sreturn += this.membre.getName();
+        }
         if (this.isEX) { sreturn += " EX"; }
         return sreturn;
     }

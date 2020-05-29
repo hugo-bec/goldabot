@@ -85,8 +85,10 @@ public class Main {
                     for (ThreadJavacord1 th: listThread) {
                         th.interrupt();
                     }
+                    event.getChannel().sendMessage("adieu >:c");
                     api.disconnect();
                     System.out.println("Logged out");
+                    System.exit(0);
                 } else {
                     event.getChannel().sendMessage("Vous devez être owner pour stopper le bot");
                 }
