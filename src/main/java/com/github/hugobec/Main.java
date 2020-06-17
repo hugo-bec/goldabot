@@ -150,8 +150,12 @@ public class Main {
         boolean dejaStop = true;
         for (ThreadJavacord1 th: listThread) {
             if (th.getServeur().equals(event.getServer().get())){           // A TESTER
-                th.setDemandeStop(true);
-                event.getChannel().sendMessage("Main: demande stop");
+                th.stopperThread();
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ie) {
+                    ie.getMessage();
+                }
                 listThread.remove(th);
                 dejaStop = false;
             }

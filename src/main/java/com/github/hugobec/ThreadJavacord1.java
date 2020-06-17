@@ -205,15 +205,24 @@ public class ThreadJavacord1 extends Thread {
     }
 
 
+    public void stopperThread(){
+        try {
+            sauvegarder();
+            this.event.getChannel().sendMessage("thread : sauvegarde effectuée");
+        } catch (IOException ioe) {
+            ioe.getMessage();
+            this.event.getChannel().sendMessage("thread : sauvegarde echouée");
+        }
+        this.event.getChannel().sendMessage("thread stoppe");
+        this.interrupt();
+    }
+
+
 
 // SETTER
 
     public void setNiveauActivite(int niveauActivite) {
         this.niveauActivite = niveauActivite;
-    }
-
-    public void setDemandeStop(boolean b){
-        this.demandeStop = b;
     }
 
 
@@ -538,7 +547,8 @@ public class ThreadJavacord1 extends Thread {
     private void eventAide(MessageCreateEvent eventReq){
         String message = ">>> **Commandes Goldabot** :\n" +
                 "- `" +prefixOriginal+"ping` : renvoi Pong\n" +
-                "- `" +prefix+"capture [nom]` : Permet de capturer un membre qui est apparu\n" +
+                "- `" +prefix+"capture [nom]` : Permet de capturer un membre qui est apparu, pour un membre EX il faut" +
+                " inscrire son nom ET la marque EX précédé d'un espace  pour pouvoir le capturer !\n" +
                 "- `" +prefix+"inventaire` : affiche l'inventaire de vos membre capturé\n" +
                 "- `" +prefix+"sauvegarder` : Sauvegarde tout inventaire en cas de crash, " +
                 "en sachant qu'une sauvegarde est effectué automatiquement toute les 20/30 minutes\n" +
@@ -555,7 +565,7 @@ public class ThreadJavacord1 extends Thread {
                     "- `" +prefix+"voirconfig` : Affiche les paramètres actuel\n" +
                     "- `" +prefix+"resetmemoire` : Permet de reset la mémoire, c'est à dire de réinitialiser tous les inventaires et les taux de drop\n";
         }
-        message += "\nCode source : https://github.com/hugo-bec/goldabot";
+        message += "\nCode source : **https://github.com/hugo-bec/goldabot**";
 
         eventReq.getChannel().sendMessage(message);
     }
