@@ -24,7 +24,7 @@ public class Main {
             RandomAccessFile tokenFile = new RandomAccessFile("../fichiers_goldabot/tokengoldabot.txt", "r");
             token = tokenFile.readLine();
             tokenFile.close();
-            System.out.println("Token : " + token);
+            //System.out.println("Token : " + token);
         } catch (Exception e) {
             e.getMessage();
         }
@@ -77,14 +77,7 @@ public class Main {
                     event.getChannel().sendMessage("Vous devez être administrateur pour stopper le thread.");
                 }
             }
-            else if(tabRequete[0].equalsIgnoreCase(prefixOriginal + "72962off")){
-                if (event.getMessageAuthor().getIdAsString().equals("157394179444441090")) {
-                    event.getChannel().sendMessage("adieu >:c");
-                    stopperProgramme(api);
-                } else {
-                    event.getChannel().sendMessage("Vous devez être owner pour stopper le bot");
-                }
-            }
+
             else {
                 if (thj != null) {
                     thj.gestionEvent(event);
