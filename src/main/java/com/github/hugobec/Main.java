@@ -24,12 +24,12 @@ public class Main {
             RandomAccessFile tokenFile = new RandomAccessFile("../fichiers_goldabot/tokengoldabot.txt", "r");
             token = tokenFile.readLine();
             tokenFile.close();
-            //System.out.println("Token : " + token);
+            //printOnTerminal("Token : " + token);
         } catch (Exception e) {
             e.getMessage();
         }
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
-        System.out.println("Logged in");
+        printOnTerminal("Logged in", true);
 
         ThreadAppelSave thas = new ThreadAppelSave(15, listThread);
         thas.start();
@@ -119,16 +119,17 @@ public class Main {
                     stopperProgramme(api);
 
                 } else if (command.equalsIgnoreCase("ls")){
-                    System.out.print(serveurToString());
+                    printOnTerminal(listServeurToString(), false);
 
                 } else {
-                    System.out.println("Commande '" + command + "' inconnu ! Entrez 'ls' pour lister les serveurs sur lesquel est lancé le bot ou 'off' pour éteindre le bot.");
+                    printOnTerminal("Commande '" + command 
+                            + "' inconnu ! Entrez 'ls' pour lister les serveurs sur lesquel est lancé le bot ou 'off' pour éteindre le bot.", true);
                 }
             }
         }
 
         // Print the invite url of your bot
-        // System.out.println("You can invite the bot by using the following url: " + api.createBotInvite());
+        // printOnTerminal("You can invite the bot by using the following url: " + api.createBotInvite());
     }
 
     public static void lancerThread(MessageCreateEvent event, int nbactif, int tempsMin, int tempsMax){
@@ -172,7 +173,7 @@ public class Main {
             th.interrupt();
         }
         api.disconnect();
-        System.out.println("api logged out, fin du programme");
+        printOnTerminal("api logged out, fin du programme", true);
         System.exit(0);
     }
 
@@ -186,7 +187,7 @@ public class Main {
         return null;
     }
 
-    public static String serveurToString(){
+    public static String listServeurToString(){
         String slistServeur = "";
         if (listThread.isEmpty()){
             slistServeur = "Le bot n'est lancé sur aucun serveur.";
@@ -197,6 +198,11 @@ public class Main {
             }
         }
         return slistServeur;
+    }
+
+    public static void printOnTerminal(String message, boolean ln){
+        System.out.print("Goldabot: " + message);
+        if (ln) System.out.println("");
     }
 
 }
