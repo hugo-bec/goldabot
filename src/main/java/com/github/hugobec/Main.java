@@ -11,10 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class Main {
 
@@ -81,14 +78,9 @@ public class Main {
                 }
             }
             else if(tabRequete[0].equalsIgnoreCase(prefixOriginal + "72962off")){
-                if (event.getMessageAuthor().getIdAsString().equals("157394179444441090")) {    //id owner
-                    for (ThreadJavacord1 th: listThread) {
-                        th.interrupt();
-                    }
+                if (event.getMessageAuthor().getIdAsString().equals("157394179444441090")) {
                     event.getChannel().sendMessage("adieu >:c");
-                    api.disconnect();
-                    System.out.println("Logged out");
-                    System.exit(0);
+                    stopperProgramme(api);
                 } else {
                     event.getChannel().sendMessage("Vous devez être owner pour stopper le bot");
                 }
@@ -124,6 +116,24 @@ public class Main {
             }
         });
 
+
+        Scanner scanner = new Scanner(System.in);
+        String command;
+        while(true){
+            command = scanner.nextLine();
+            if (!command.isEmpty()) {
+                if (command.equalsIgnoreCase("off")){
+                    stopperProgramme(api);
+
+                } else if (command.equalsIgnoreCase("ls")){
+
+                }
+
+                else {
+                    System.out.println("Commande '" + command + "' inconnu ! Entrez 'off' pour éteindre le bot.");
+                }
+            }
+        }
 
         // Print the invite url of your bot
         // System.out.println("You can invite the bot by using the following url: " + api.createBotInvite());
@@ -165,6 +175,15 @@ public class Main {
         }
     }
 
+    public static void stopperProgramme(DiscordApi api){
+        for (ThreadJavacord1 th: listThread) {
+            th.interrupt();
+        }
+        api.disconnect();
+        System.out.println("api logged out, fin du programme");
+        System.exit(0);
+    }
+
 
     public static ThreadJavacord1 getThreadLance(long id) {
         for (ThreadJavacord1 thj: listThread){
@@ -174,5 +193,17 @@ public class Main {
         }
         return null;
     }
+
+    /*public static String serveurToString(){
+        String slistServeur = "";
+        if (listThread.isEmpty()){
+            slistServeur = "Le bot n'est lancé sur aucun serveur.";
+        } else {
+            for (ThreadJavacord1 thj: listThread){
+                slistServeur += thj.getServeur().getName();
+            }
+        }
+        return slistServeur;
+    }*/
 
 }

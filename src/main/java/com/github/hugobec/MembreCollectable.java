@@ -95,7 +95,7 @@ public class MembreCollectable {
                 i++;
             }
             //stringInventaire.replace("EX", "**EX**");
-            System.out.println(stringInventaire);
+            //System.out.println(stringInventaire);
             //System.out.println("test EX salut a a a EX".replace("EX", "**EX**"));
         }
         return stringInventaire;
