@@ -119,11 +119,10 @@ public class Main {
                     stopperProgramme(api);
 
                 } else if (command.equalsIgnoreCase("ls")){
+                    System.out.print(serveurToString());
 
-                }
-
-                else {
-                    System.out.println("Commande '" + command + "' inconnu ! Entrez 'off' pour éteindre le bot.");
+                } else {
+                    System.out.println("Commande '" + command + "' inconnu ! Entrez 'ls' pour lister les serveurs sur lesquel est lancé le bot ou 'off' pour éteindre le bot.");
                 }
             }
         }
@@ -187,16 +186,17 @@ public class Main {
         return null;
     }
 
-    /*public static String serveurToString(){
+    public static String serveurToString(){
         String slistServeur = "";
         if (listThread.isEmpty()){
             slistServeur = "Le bot n'est lancé sur aucun serveur.";
         } else {
             for (ThreadJavacord1 thj: listThread){
-                slistServeur += thj.getServeur().getName();
+                slistServeur += "Serveur: " + thj.getServeur().getName() + ", Salon: " + thj.getNomSalon() + ", nbMembre: "
+                        + thj.getServeur().getMembers().size() + "\n";
             }
         }
         return slistServeur;
-    }*/
+    }
 
 }

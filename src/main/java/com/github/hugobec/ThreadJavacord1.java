@@ -150,6 +150,10 @@ public class ThreadJavacord1 extends Thread {
         return this.event.getServer().get();
     }
 
+    public String getNomSalon(){
+        return event.getServerTextChannel().get().getName();
+    }
+
     private MembreCollectable getRandomMembre(){
         int nbrMembre = listMembre.size();
         return listMembre.get(randInt(0, nbrMembre-1));
