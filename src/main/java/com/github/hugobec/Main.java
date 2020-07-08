@@ -24,9 +24,10 @@ public class Main {
             RandomAccessFile tokenFile = new RandomAccessFile("../fichiers_goldabot/tokengoldabot.txt", "r");
             token = tokenFile.readLine();
             tokenFile.close();
-            //printOnTerminal("Token : " + token);
+            printOnTerminal("Token : " + token, true);
         } catch (Exception e) {
             e.getMessage();
+            e.getCause();
         }
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
         printOnTerminal("Logged in", true);
@@ -190,7 +191,7 @@ public class Main {
     public static String listServeurToString(){
         String slistServeur = "";
         if (listThread.isEmpty()){
-            slistServeur = "Le bot n'est lancé sur aucun serveur.";
+            slistServeur = "Le bot n'est lancé sur aucun serveur.\n";
         } else {
             for (ThreadJavacord1 thj: listThread){
                 slistServeur += "Serveur: " + thj.getServeur().getName() + ", Salon: " + thj.getNomSalon() + ", nbMembre: "
