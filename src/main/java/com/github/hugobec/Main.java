@@ -12,24 +12,49 @@ import java.io.PrintStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
+import java.util.concurrent.CompletionException;
 
 public class Main {
 
     static List<ThreadJavacord1> listThread = new ArrayList<>();
     static String prefixOriginal = "g.";   //ne doit pas contenir d'espace
+    static String fichierparam = "settings.txt";
+    static String token = "", idadmin = "";
 
     public static void main(String[] args) {
-        String token = "";
+        String ligneparam = "";
+        String[] tabligneparam;
         try {
-            RandomAccessFile tokenFile = new RandomAccessFile("../fichiers_goldabot/tokengoldabot.txt", "r");
-            token = tokenFile.readLine();
+            RandomAccessFile tokenFile = new RandomAccessFile("../fichiers_goldabot/"+fichierparam, "r");
+            ligneparam = tokenFile.readLine();
+            while (ligneparam != null) {
+                tabligneparam = ligneparam.split(" ");
+                if (tabligneparam[0].equalsIgnoreCase("token:")) {
+                    token = tabligneparam[1];
+                }
+                else if (tabligneparam[0].equalsIgnoreCase("idadmin:")) {
+                    idadmin = tabligneparam[1];
+                }
+                else {
+                    printOnTerminal("ERREUR: Chargement '"+fichierparam+"': paramètre '" + tabligneparam[0] + "' inconnu.", true);
+                    System.exit(0);
+                }
+                ligneparam = tokenFile.readLine();
+            }
+            if (token.isEmpty()) { printOnTerminal("ERREUR: Chargement '"+fichierparam+"': token manquant", true); System.exit(0);}
+            if (idadmin.isEmpty()) { printOnTerminal("ERREUR: Chargement '"+fichierparam+"': idadmin manquant", true); System.exit(0);}
+
             tokenFile.close();
             printOnTerminal("Token : " + token, true);
+            printOnTerminal("Idadmin : " + idadmin, true);
         } catch (Exception e) {
+            printOnTerminal("ERREUR: Chargement '"+fichierparam+"': impossible d'ouvrir/de lire le fichier.", true);
             e.getMessage();
-            e.getCause();
+            System.exit(0);
         }
+        try {
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
+
         printOnTerminal("Logged in", true);
 
         ThreadAppelSave thas = new ThreadAppelSave(15, listThread);
@@ -76,6 +101,21 @@ public class Main {
                     stopperThread(event);
                 } else {
                     event.getChannel().sendMessage("Vous devez être administrateur pour stopper le thread.");
+                }
+
+            } else if (tabRequete[0].equalsIgnoreCase(prefixOriginal + "off")) {
+                if (event.getMessageAuthor().getIdAsString().equals(idadmin)) {
+                    event.getChannel().sendMessage("adieu >:c");
+                    stopperProgramme(api);
+                } else {
+                    event.getChannel().sendMessage("Vous devez être owner pour stopper le bot");
+                }
+
+            } else if (tabRequete[0].equalsIgnoreCase(prefixOriginal + "list")) {
+                if (event.getMessageAuthor().getIdAsString().equals(idadmin)) {
+                    event.getChannel().sendMessage(listServeurToString());
+                } else {
+                    event.getChannel().sendMessage("Vous devez être owner pour voir la liste des serveurs.");
                 }
             }
 
@@ -127,6 +167,12 @@ public class Main {
                             + "' inconnu ! Entrez 'ls' pour lister les serveurs sur lesquel est lancé le bot ou 'off' pour éteindre le bot.", true);
                 }
             }
+        }
+
+        } catch (CompletionException ce) {
+            printOnTerminal("ERREUR: token incorrect ou accés internet impossible.", true);
+            ce.getMessage();
+            System.exit(0);
         }
 
         // Print the invite url of your bot
