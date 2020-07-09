@@ -108,14 +108,14 @@ public class Main {
                     event.getChannel().sendMessage("adieu >:c");
                     stopperProgramme(api);
                 } else {
-                    event.getChannel().sendMessage("Vous devez être owner pour stopper le bot");
+                    event.getChannel().sendMessage("Vous devez être owner pour éteindre le bot");
                 }
 
             } else if (tabRequete[0].equalsIgnoreCase(prefixOriginal + "list")) {
                 if (event.getMessageAuthor().getIdAsString().equals(idadmin)) {
                     event.getChannel().sendMessage(listServeurToString());
                 } else {
-                    event.getChannel().sendMessage("Vous devez être owner pour voir la liste des serveurs.");
+                    event.getChannel().sendMessage("Vous devez être owner pour voir la liste des serveurs du bot.");
                 }
             }
 
@@ -153,21 +153,6 @@ public class Main {
 
         Scanner scanner = new Scanner(System.in);
         String command;
-        while(true){
-            command = scanner.nextLine();
-            if (!command.isEmpty()) {
-                if (command.equalsIgnoreCase("off")){
-                    stopperProgramme(api);
-
-                } else if (command.equalsIgnoreCase("ls")){
-                    printOnTerminal(listServeurToString(), false);
-
-                } else {
-                    printOnTerminal("Commande '" + command 
-                            + "' inconnu ! Entrez 'ls' pour lister les serveurs sur lesquel est lancé le bot ou 'off' pour éteindre le bot.", true);
-                }
-            }
-        }
 
         } catch (CompletionException ce) {
             printOnTerminal("ERREUR: token incorrect ou accés internet impossible.", true);

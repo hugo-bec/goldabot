@@ -394,7 +394,7 @@ public class ThreadJavacord1 extends Thread {
                         double taux = Double.parseDouble(tabRequete[2]);
                         if (taux > 0 && taux < 1) {
                             this.tauxEx = taux;
-                            printOnTerminal(": changer: tauxex modifié: " + this.tauxEx, true);
+                            printOnTerminal(": changeparam: tauxex modifié: " + this.tauxEx, true);
                             eventReq.getChannel().sendMessage("Taux d'apparition Ex change à " + taux + " !");
                         } else {
                             eventReq.getChannel().sendMessage("Erreur: Le taux doit être compris entre 0 et 1.");
@@ -459,7 +459,7 @@ public class ThreadJavacord1 extends Thread {
                             if (ptentMin <= ptentMax) {
                                 this.nbTentativeMin = ptentMin;
                                 this.nbTentativeMax = ptentMax;
-                                printOnTerminal(": changer: nbtentative modifié: "+this.nbTentativeMin+" à "+this.nbTentativeMax, true);
+                                printOnTerminal(": changeparam: nbtentative modifié: "+this.nbTentativeMin+" à "+this.nbTentativeMax, true);
                                 eventReq.getChannel().sendMessage("Intervalle du nombre de tentative change " + this.nbTentativeMin + " et " + this.nbTentativeMax + " !");
                             } else {
                                 eventReq.getChannel().sendMessage("Erreur: nbTentativeMin doit être inferieur à nbTentativeMax.");
