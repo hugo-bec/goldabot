@@ -7,10 +7,7 @@ import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.event.message.MessageCreateEvent;
 
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
-import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.CompletionException;
 
@@ -22,6 +19,24 @@ public class Main {
     static String token = "", idadmin = "";
 
     public static void main(String[] args) {
+
+        File f = new File("../fichiers_goldabot/logs.txt");
+        f.delete();
+
+        ThreadAppelSave thas1 = new ThreadAppelSave(10, listThread);
+        //ThreadAppelSave thas2 = new ThreadAppelSave(2, listThread);
+        //ThreadAppelSave thas3 = new ThreadAppelSave(3, listThread);
+        //ThreadAppelSave thas4 = new ThreadAppelSave(4, listThread);
+        //ThreadAppelSave thas5 = new ThreadAppelSave(5, listThread);
+        thas1.start();
+        //thas2.start();
+        //thas3.start();
+        //thas4.start();
+        //thas5.start();
+
+
+
+
         String ligneparam = "";
         String[] tabligneparam;
         try {
@@ -233,7 +248,14 @@ public class Main {
     }
 
     public static void printOnTerminal(String message, boolean ln){
-        System.out.print("Goldabot: " + message);
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        String date = cal.get(Calendar.YEAR) + " "
+                + cal.get(Calendar.MONTH) + " "
+                + cal.get(Calendar.DAY_OF_MONTH) + " "
+                + cal.get(Calendar.HOUR_OF_DAY) + ":"
+                + cal.get(Calendar.MINUTE) + ":"
+                + cal.get(Calendar.SECOND);
+        System.out.print("Goldabot: " + date + " :  " + message);
         if (ln) System.out.println("");
     }
 

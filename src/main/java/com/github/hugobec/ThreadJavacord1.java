@@ -89,7 +89,10 @@ public class ThreadJavacord1 extends Thread {
             }
             else {    //Le fichier de sauvegarde n'existe pas encore
                 event.getChannel().sendMessage(" thread: Creation du fichier de save");
+
                 this.fichierSave = new RandomAccessFile(nomFichierSave, "rw");
+                Runtime.getRuntime().exec("chmod +x " + nomFichierSave);
+
                 creerFichierSave();
                 this.fichierSave.close();
             }
@@ -102,7 +105,7 @@ public class ThreadJavacord1 extends Thread {
 
 
     public void run(){
-        printOnTerminal(": thread start", true);
+        printOnTerminal(": thread start");
         event.getChannel().sendMessage("thread: thread start");
 
         while(true){
@@ -237,12 +240,12 @@ public class ThreadJavacord1 extends Thread {
 
     public void resetDemandeMemoire(){
         this.demandeReset = false;
-        printOnTerminal(" demande reset mémoire éffacé (reset)", true);
+        printOnTerminal(" demande reset mémoire éffacé (reset)");
     }
 
     public void resetDemandeEchange(){
         this.propEchanges = new ArrayList<>();
-        printOnTerminal(" demande d'échange éffacé (reset)", true);
+        printOnTerminal(" demande d'échange éffacé (reset)");
     }
 
     public void resetPeutCapturer() {
@@ -331,11 +334,11 @@ public class ThreadJavacord1 extends Thread {
                     if (contenuReq.equalsIgnoreCase(this.actualGuess.getNom(this.nomOriginaux, eventReq.getServer().get()))) {
                         messageTerminal += " == '" + this.actualGuess.getNom(this.nomOriginaux, eventReq.getServer().get()) + "' -> ";
                         if (Math.random() < this.actualGuess.getTauxDrop()) {
-                            printOnTerminal(messageTerminal + "capturé !", true);
+                            printOnTerminal(messageTerminal + "capturé !");
                             eventReq.getChannel().sendMessage("Utilisateur capturé !");
                             getMembreById(eventReq.getMessageAuthor().getIdAsString()).ajouterInventaire(this.actualGuess);
                         } else {
-                            printOnTerminal(messageTerminal + "raté !", true);
+                            printOnTerminal(messageTerminal + "raté !");
                             this.event.getChannel().sendMessage("Vous n'avez pas reussi à capturer l'utilisateur !");
                             mAuteur.setPeutCapturer(false);
                             this.nbTentatives--;
@@ -346,7 +349,7 @@ public class ThreadJavacord1 extends Thread {
                         }
 
                     } else {
-                        printOnTerminal(messageTerminal + " != '" + this.actualGuess.getNom(this.nomOriginaux, eventReq.getServer().get()) + "'", true);
+                        printOnTerminal(messageTerminal + " != '" + this.actualGuess.getNom(this.nomOriginaux, eventReq.getServer().get()) + "'");
                         eventReq.getChannel().sendMessage("Incorrect, ce n'est pas son nom !");
                         this.nbTentatives--;
                         if (this.nbTentatives <= 0) {
@@ -356,7 +359,7 @@ public class ThreadJavacord1 extends Thread {
                     }
 
                 } else {
-                    printOnTerminal(messageTerminal + " a déjà essayé de capturer.", true);
+                    printOnTerminal(messageTerminal + " a déjà essayé de capturer.");
                     eventReq.getChannel().sendMessage("Vous avez déjà essayé de capturer le membre :/");
                 }
 
@@ -394,7 +397,7 @@ public class ThreadJavacord1 extends Thread {
                         double taux = Double.parseDouble(tabRequete[2]);
                         if (taux > 0 && taux < 1) {
                             this.tauxEx = taux;
-                            printOnTerminal(": changeparam: tauxex modifié: " + this.tauxEx, true);
+                            printOnTerminal(": changeparam: tauxex modifié: " + this.tauxEx);
                             eventReq.getChannel().sendMessage("Taux d'apparition Ex change à " + taux + " !");
                         } else {
                             eventReq.getChannel().sendMessage("Erreur: Le taux doit être compris entre 0 et 1.");
@@ -409,7 +412,7 @@ public class ThreadJavacord1 extends Thread {
                     try {
                         int nbMessageActif = Integer.parseInt(tabRequete[2]);
                         setNiveauActivite(nbMessageActif);
-                        printOnTerminal(": changer: messageactif modifié: " + nbMessageActif, true);
+                        printOnTerminal(": changeparam: messageactif modifié: " + nbMessageActif);
                         eventReq.getChannel().sendMessage("Nombre de message minimum pour considérer une activite change à " + nbMessageActif + " !");
                     } catch (NumberFormatException nfe) {
                         nfe.getMessage();
@@ -419,11 +422,11 @@ public class ThreadJavacord1 extends Thread {
                 } else if (tabRequete[1].equalsIgnoreCase("nomoriginal")) {
                     if (tabRequete[2].equalsIgnoreCase("vrai")) {
                         this.nomOriginaux = true;
-                        printOnTerminal(": changer: nomoriginal modifié: " + "vrai", true);
+                        printOnTerminal(": changeparam: nomoriginal modifié: " + "vrai");
                         eventReq.getChannel().sendMessage("Le bot est maintenant en mode \"pseudo original\".");
                     } else if (tabRequete[2].equalsIgnoreCase("faux")) {
                         this.nomOriginaux = false;
-                        printOnTerminal(": changer: nomoriginal modifié: " + "faux", true);
+                        printOnTerminal(": changeparam: nomoriginal modifié: " + "faux");
                         eventReq.getChannel().sendMessage("Le bot est maintenant en mode \"pseudo du serveur\".");
                     } else {
                         eventReq.getChannel().sendMessage("Erreur: Veuillez choisir entre \'vrai\' ou \'faux\'.");
@@ -437,7 +440,7 @@ public class ThreadJavacord1 extends Thread {
                             if (ptempsMin <= ptempsMax) {
                                 this.tempsMin = ptempsMin;
                                 this.tempsMax = ptempsMax;
-                                printOnTerminal(": changer: intervalle modifié: "+this.tempsMin+" à "+this.tempsMax, true);
+                                printOnTerminal(": changeparam: intervalle modifié: "+this.tempsMin+" à "+this.tempsMax);
                                 eventReq.getChannel().sendMessage("Intervalle entre les apparitions change " + this.tempsMin + " et " + this.tempsMax + " !");
                             } else {
                                 eventReq.getChannel().sendMessage("Erreur: tempsMin doit être inferieur à tempsMax.");
@@ -459,7 +462,7 @@ public class ThreadJavacord1 extends Thread {
                             if (ptentMin <= ptentMax) {
                                 this.nbTentativeMin = ptentMin;
                                 this.nbTentativeMax = ptentMax;
-                                printOnTerminal(": changeparam: nbtentative modifié: "+this.nbTentativeMin+" à "+this.nbTentativeMax, true);
+                                printOnTerminal(": changeparam: nbtentative modifié: "+this.nbTentativeMin+" à "+this.nbTentativeMax);
                                 eventReq.getChannel().sendMessage("Intervalle du nombre de tentative change " + this.nbTentativeMin + " et " + this.nbTentativeMax + " !");
                             } else {
                                 eventReq.getChannel().sendMessage("Erreur: nbTentativeMin doit être inferieur à nbTentativeMax.");
@@ -477,7 +480,7 @@ public class ThreadJavacord1 extends Thread {
 
                 else if (tabRequete[1].equalsIgnoreCase("prefix")) {
                     this.prefix = tabRequete[2];
-                    printOnTerminal(": changer: prefix modifié: "+this.prefix, true);
+                    printOnTerminal(": changeparam: prefix modifié: "+this.prefix);
                     eventReq.getChannel().sendMessage("Prefix changer en `" + this.prefix + "` !");
                 }
 
@@ -594,7 +597,7 @@ public class ThreadJavacord1 extends Thread {
                         //System.out.println("Auteur proposition : " + mAuteur.getNom(true, eventReq.getServer().get()));
                         this.propEchanges.add(new PropositionEchange(mAuteur, idMembre));
                         printOnTerminal(": echange: " + mAuteur.getNom(false, eventReq.getServer().get())
-                                + " :" + " propose échange " + idMembre, true);
+                                + " :" + " propose échange " + idMembre);
                         eventReq.getChannel().sendMessage("Echange proposé !");
                         if (propEchanges.size() == 2) {
                             eventReq.getChannel().sendMessage(">>> Vous vous apprété à échanger "
@@ -652,7 +655,7 @@ public class ThreadJavacord1 extends Thread {
 
                                 this.propEchanges.get(i).confirmer();
                                 printOnTerminal(": echange: " + mAuteur.getNom(false, eventReq.getServer().get())
-                                        + " :" + " echange confirmé", true);
+                                        + " :" + " echange confirmé");
                             }
                         }
                         if (this.propEchanges.get(0).estConfirme() && this.propEchanges.get(1).estConfirme()) {
@@ -660,7 +663,7 @@ public class ThreadJavacord1 extends Thread {
                             String message = "échange effectué entre "
                                     + propEchanges.get(0).getMembreProposition().getMentionTag()
                                     + " et " + propEchanges.get(1).getMembreProposition().getMentionTag() + " !";
-                            printOnTerminal(": echange: " + mAuteur.getNom(false, eventReq.getServer().get()) + " :" + message, true);
+                            printOnTerminal(": echange: " + mAuteur.getNom(false, eventReq.getServer().get()) + " :" + message);
                             eventReq.getChannel().sendMessage(message);
                             resetDemandeEchange();
                         }
@@ -682,17 +685,17 @@ public class ThreadJavacord1 extends Thread {
 
     public void eventUserJoin(User u) {
         this.listMembre.add(new MembreCollectable(u, false));
-        printOnTerminal(": nouveau membre '" + u.getName() + "' ajouté !", true);
+        printOnTerminal(": nouveau membre '" + u.getName() + "' ajouté !");
     }
 
     public void eventUserLeave(User u) {
         this.listMembre.remove(getMembreById(u.getIdAsString()));
-        printOnTerminal(": ancien membre '" + u.getName() + "' retiré !", true);
+        printOnTerminal(": ancien membre '" + u.getName() + "' retiré !");
     }
 
 
 
-// SAUVEGARDE / CHARGEMENT
+// SAUVEGARDE / CHARGEMENT / LOGS
 
     private void ecrireTauxDrop() throws IOException {
         for (MembreCollectable m: this.listMembre){
@@ -769,13 +772,28 @@ public class ThreadJavacord1 extends Thread {
 
     public void sauvegarder() throws IOException {
         creerFichierSave();
-        printOnTerminal(": sauvegarde éffectué !", true);
+        printOnTerminal(": sauvegarde éffectué !");
     }
 
     private void deleteFichierSave(){
         File f = new File(nomFichierSave);
         f.delete();
     }
+
+    /*
+    private void printOnLog(String message) {
+        try {
+            RandomAccessFile logFile = new RandomAccessFile("../fichiers_goldabot/logs.txt", "rw");
+            synchronized(logFile) {
+                logFile.writeChars(message+"\n");
+            }
+            logFile.close();
+        } catch (IOException ioe){
+            ioe.getMessage();
+            printOnTerminal ("ERREUR: Impossible d'ouvrir / d'écrire dans logs.txt");
+        }
+    }
+    */
 
 
 
@@ -796,9 +814,15 @@ public class ThreadJavacord1 extends Thread {
         return randomNum;
     }
 
-    public void printOnTerminal(String message, boolean ln){
-        System.out.print("Goldabot: " + getServeur().getName() + ": " + message);
-        if (ln) System.out.println("");
+    public void printOnTerminal (String message){
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        String date = cal.get(Calendar.YEAR) + " "
+                + cal.get(Calendar.MONTH) + " "
+                + cal.get(Calendar.DAY_OF_MONTH) + " "
+                + cal.get(Calendar.HOUR_OF_DAY) + ":"
+                + cal.get(Calendar.MINUTE) + ":"
+                + cal.get(Calendar.SECOND);
+        System.out.print("Goldabot: " + date + " :  " + getServeur().getName() + ": " + message + "\n");
     }
 
 }
