@@ -4,12 +4,19 @@ Goldabot est un bot discord qui vous permet de capturer les membres de votre ser
 De la même manière que [Waifu Bot](https://waifubot.net/), des membres de votre serveurs apparaitront de façon aléatoire afin de les capturer.  
 Bot programmé en Java grâce à l'API [Javacord](https://javacord.org/).  
 
+Le bot fait apparaître des membres seulement si il détecte une certaine activité qui consiste en un certain nombre de message envoyé sur le serveur. 
+Ce nombre de message est décrit par le premier paramètre de la commande `g.lancer` et est modifiable grâce à la commande `g.changer messageactif [n]` (voir commande `g.changer`).
 
-Chaque membres ont un taux de drop aléatoire, ainsi certains membres sont plus difficile à attrapé que d'autre.  
-Les taux de drop sont inconnu, unique et sauvegardé en même temps que inventaires de chacun.  
-Il est possible de réinitialiser la mémoire, afin de vider tout les inventaires et de reroll les taux de drop des membres (voir commande `g.resetmemoire`).  
+Chaque membres ont un taux de drop aléatoire, ainsi certains membres sont plus difficile à attrapé que d'autre. 
+Les taux de drop sont inconnu, unique et sauvegardé en même temps que inventaires de chacun. 
+Il est possible de réinitialiser la mémoire, afin de vider tout les inventaires et de reroll les taux de drop des membres (voir commande `g.resetmemoire`). 
 
+Parfois des membres EX peuvent apparaître. Ce sont des versions rare des membres qui sont représenté par une version "négative" des images de profil habituelle. Pour les attraper il suffit d'ajouter "EX" à la suite de son pseudonyme. Par défaut ce pourcentage de chance d'apparition des EX est de 0.1, mais il est possible de la modifier grâce à la commande `g.changer tauxex [taux]` (voir commande `g.changer`). 
 
+Chaque membre a un certain nombre de tentative possible pour être capturer; si vous échouez la capture d'un membre (mauvais nom OU échec de chance de capture), le nombre de tentative diminu de 1. Si un membre n'a plus de nbTentatives, il s'enfuit ! par défaut ce nombre est entre 1 et 4 mais il est modifiable grâce à la commande `g.changer tentative [nbMin] [nbMax]` (voir commande `g.changer`).
+Chaque personne n'a qu'une seule tentatives de capture mais plusieurs personnes peuvent tenter de capturer un membre.
+
+Note: Il est possible de changer le préfix du bot (`g.`) sur votre serveur grâce à la commande `g.changer prefix [nouveau préfix]` (voir commande `g.changer`).
 
  **Commandes :**
 
@@ -17,7 +24,7 @@ Il est possible de réinitialiser la mémoire, afin de vider tout les inventaire
   Affiche les commandes possible.
 
 - `g.capture [nom]` : 
-  Permet de capturer un membre qui est apparu, pour un membre EX il suffit d'inscrire son nom puis la marque EX précédé d'un espace pour pouvoir le capturer !
+  Permet de capturer un membre qui est apparu, pour capturer un membre vous devez écrire son pseudonyme précédé de cette commande. Pour un membre EX il suffit d'inscrire son nom puis la marque EX précédé d'un espace pour pouvoir le capturer !
   Le bot est en mode "nom original" par défaut, il est possible de changer ce paramètre avec la commande `g.changer nomoriginal` (voir options commandes `g.changer`).
 
 - `g.inventaire` : 
@@ -34,6 +41,7 @@ Il est possible de réinitialiser la mémoire, afin de vider tout les inventaire
 
 - `g.ping` : 
   Renvoi Pong.
+    
   
  **Commandes admin :**
  
@@ -55,6 +63,19 @@ Il est possible de réinitialiser la mémoire, afin de vider tout les inventaire
   
 - `g.resetmemoire` : 
   Réinitialise la mémoire, soit tous les inventaires et les taux de drop.
+
+**Paramètres commande 'changer' (admin)**
+`g.changer [param] ([option] ([option]))` permet de modifier les paramètres du bot.
+Il est possible d'afficher la config actuelle grâce à la commande `g.voirconfig`.
+
+Liste des paramètres disponible  :  
+- `tauxex [taux]` : Permet de changer le taux de spawn des membres EX (défaut: 0.1).
+- `messageactif [nbMessage]` : Permet de changer le nombre de message minimal entre deux spawn permettant de considérer une activité.
+- `nomoriginal [vrai OU faux]` : Permet de mettre le bot en mode 'nom originaux des membres' ou en mode 'pseudo sur le serveur'; Ceci changera également les pseudos à deviner durant la capture (défaut: vrai). 
+- `intervalle [minutesMin] [minutesMax]` : Permet de changer la fourchette de temps possible entre les spawns.
+- `tentative [nbMin] [nbMax]` : Permet de changer la fourchette de nombre de tentatives possible pour la capture d'un membre (défaut: 1 à 4).
+- `prefix [prefix]` : Permet de changer le prefix du bot.
+
 
 
 **Lien d'invitation :**  
